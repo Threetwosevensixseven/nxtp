@@ -20,3 +20,5 @@ The server is written in C# using .NET Core 3.0, and can be hosted on any Window
 *nxtp* is © 2019 Robin Verhagen-Guest, and licensed under [Apache 2.0](LICENSE). 
 
 Everyone is encouraged to host a public *nxtp* server, or port the *nxtp* client to a different machine or architecture.
+
+ZX Spectrum Next is a trademark of SpecNext Ltd.
