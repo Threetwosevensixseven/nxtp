@@ -1,5 +1,6 @@
 ﻿using NxtpData;
 using NxtpData.Request;
+using NxtpData.Response;
 using System;
 using System.Linq;
 using System.Net.Sockets;
@@ -9,6 +10,7 @@ namespace NxtpClient
 {
     public class Program
     {
+        public const byte VERSION = 1;
         public static string ServerAddress;
         public static int Port;
         public static bool Interactive;
@@ -44,22 +46,25 @@ namespace NxtpClient
                 Console.WriteLine("Requesting time for timezone \"" + Zone + "\"...");
 
                 Console.WriteLine("Connecting to server " + ServerAddress + " on port " + Port + "...");
-                TcpClient client = new TcpClient(ServerAddress, Port);
-                Byte[] data = req.Serialize();
-                Console.WriteLine("Request: {0}", req.ToHex());
-                NetworkStream stream = client.GetStream();
-                stream.Write(data, 0, data.Length);
-
-                data = new Byte[256];
-                String responseData = String.Empty;
-                int read = stream.Read(data, 0, data.Length);
-
-                responseData = System.Text.Encoding.ASCII.GetString(data, 0, read);
-                Console.WriteLine("Response: {0}", ToHex(data, read));
-
-                stream.Close();
-                client.Close();
-
+                using (var client = new TcpClient(ServerAddress, Port))
+                {
+                    Byte[] data = req.Serialize();
+                    Console.WriteLine("Request: {0}", req.ToHex());
+                    using (var stream = client.GetStream())
+                    {
+                        stream.Write(data, 0, data.Length);
+                        data = new Byte[1024];
+                        int read = stream.Read(data, 0, data.Length);
+                        Console.WriteLine("Response: {0}", ToHex(data, read));
+                        var resp = (NxtpResponseV1)req.GetResponse().Deserialize(data, read);
+                        if (resp == null)
+                            Console.WriteLine("Result could not be processed");
+                        else
+                            Console.WriteLine("Result: {0} {1} ({2})", 
+                                resp.DateFormatted, resp.TimeFormatted, resp.Result.ToString("s"));
+                    }
+                    Console.WriteLine("Closing connection");
+                }
                 return 0;
             }
             catch (SocketException ex)

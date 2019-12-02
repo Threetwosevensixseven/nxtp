@@ -7,7 +7,7 @@ namespace NxtpData.Response
     public interface INxtpResponse
     {
         public byte[] Serialize();
-        public INxtpResponse Deserialize(byte[] Data);
+        public INxtpResponse Deserialize(byte[] Data, int DataSize);
         public string ToHex();
         public string ToText();
     }

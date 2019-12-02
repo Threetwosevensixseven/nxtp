@@ -18,6 +18,15 @@ namespace NxtpData.Request
         public NxtpRequestV1(string TimeZoneCode)
         {
             this.TimeZoneCode = TimeZoneCode;
+            string zone = (TimeZoneCode ?? "").Replace(" ", "").ToLower();
+            foreach (var tz in TimeZoneInfo.GetSystemTimeZones())
+            {
+                if (zone == tz.Id.Replace(" ", "").ToLower())
+                {
+                    this.ZoneInfo = tz;
+                    break;
+                }
+            }
         }
 
         public byte Version { get { return 1; } }
