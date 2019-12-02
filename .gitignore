@@ -1,0 +1,8 @@
+/docs/~*.*
+/src/core/.vs
+/src/core/NxtpClient/bin
+/src/core/NxtpClient/obj
+/src/core/NxtpData/bin
+/src/core/NxtpData/obj
+/src/core/NxtpServer/bin
+/src/core/NxtpServer/obj

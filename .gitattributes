@@ -1,0 +1,17 @@
+*.*   			binary
+
+*.asm   		text
+*.cs   			text
+*.txt   		text
+*.inc   		text
+*.config 		text
+*.bat   		text
+*.manifest 		text
+*.csproj 		text
+*.a80   		text
+*.ini   		text
+*.cfg   		text
+*.html   		text
+*.sln   		text
+*.gitignore 		text
+*.gitattributes 	text

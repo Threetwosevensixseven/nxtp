@@ -1,2 +1,6 @@
 # nxtp
-Network neXt Time Protocol. Server in .NET Core, Clients for ZX Spectrum Next and .NET Core
+Network neXt Time Protocol.
+
+The server and a reference client are written in .NET Core.
+
+A dot command client for the ZX Spectrum Next is written in Z80N assembly language.
