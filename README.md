@@ -14,7 +14,7 @@ We also provide a C# reference client using .NET Core 3.0, to assist with portin
 The server is written in C# using .NET Core 3.0, and can be hosted on any Windows, Mac or linux computer. You may use the public server hosted by the Next team, or run your own private copy of the server on your PC, or a Raspberry Pi running Raspbian.
 
 ## Project Status
-*nxtp* is currently in alpha testing. Please check back soon for details of how to use *nxtp* on your ZX Spectrum Next. If you have a GutHub account you can elect to be notified whenever there is a project release.
+*nxtp* is currently in alpha testing. Please check back soon for details of how to use *nxtp* on your ZX Spectrum Next. If you have a GitHub account you can elect to be notified whenever there is a project release.
 
 ## Copyright and Licence
 *nxtp* is © 2019 Robin Verhagen-Guest, and licensed under [Apache 2.0](LICENSE). 
