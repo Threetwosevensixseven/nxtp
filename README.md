@@ -1,5 +1,5 @@
 # nxtp (Network neXt Time Protocol)
-*nxtp* is an easy way of setting your local time on 8-bit computers equipped a RTC (Real Time Clock) and wifi or networking. It is similar to the well-known NTP Network Time Protocol, but simpler to use when millisecond precision is not needed.
+*nxtp* is an easy way of setting your local time on 8-bit computers equipped a RTC (Real Time Clock) and a network interface. It is similar to the well-known NTP Network Time Protocol, but simpler to use when millisecond precision is not needed.
 
 ## *nxtp* Client
 
