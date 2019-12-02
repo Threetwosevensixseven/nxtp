@@ -1,9 +1,9 @@
 # nxtp (Network neXt Time Protocol)
-*nxtp* is an easy way of setting your local time on 8-bit computers equipped a RTC (Real Time Clock) and a network interface. It is similar to the well-known NTP Network Time Protocol, but simpler to use when millisecond precision is not needed.
+*nxtp* is an easy way of setting your local time on 8-bit computers equipped a RTC (Real Time Clock) and a network interface. It is similar to the well-known NTP Network Time Protocol, but faster, simpler and more lightweight to use.
 
 ## *nxtp* Client
 
-A dot command client for the [ZX Spectrum Next](https://www.specnext.com/about/)™ is provided, written in Z80N assembly language. You may add a command to your AUTOEXEC.BAS file to automatically sync the time whenever you boot into NextZXOS. Your Next must be equipped with a RTC in order to make use of *nxtp*.
+A dot command client for the [ZX Spectrum Next](https://www.specnext.com/about/)™ is provided, written in Z80N assembly language. You may add a command to your AUTOEXEC.BAS file to automatically sync the time whenever you boot into NextZXOS. Your Next must be equipped with a RTC in order to use *nxtp*.
 
 You can tell *nxtp* to [set the local time in your own timezone](https://github.com/Threetwosevensixseven/nxtp/wiki/Timezone-Codes), including any daylight savings time currently in effect.
 
