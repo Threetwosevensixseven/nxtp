@@ -14,7 +14,7 @@ namespace NxtpServer.Classes
         {
             var builder = new ConfigurationBuilder()
                    .SetBasePath(Directory.GetCurrentDirectory())
-                   .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                   .AddJsonFile("NxtpServer.appsettings.json", optional: true, reloadOnChange: true);
             options = builder.Build();
         }
 
