@@ -1,5 +1,5 @@
-# nxtp
-Network neXt Time Protocol is an easy way of getting local time on 8-bit computers equipped with wifi or networking. It is similar to the well-known NTP Network Time Protocol, but simpler to use when millisecond precision is not needed.
+# nxtp (Network neXt Time Protocol)
+*nxtp* is an easy way of getting local time on 8-bit computers equipped with wifi or networking. It is similar to the well-known NTP Network Time Protocol, but simpler to use when millisecond precision is not needed.
 
 ## *nxtp* Client
 
