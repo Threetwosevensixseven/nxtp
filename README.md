@@ -11,7 +11,7 @@ We also provide a C# reference client using .NET Core 3.0, to assist with portin
 
 ## *nxtp* Server
 
-The server is written in C# using .NET Core 3.0, and can be hosted on any Windows, Mac or linux computer. You may use the public server hosted by the Next team, or run your own private copy of the server on your PC, or a Raspberry Pi running Raspbian.
+The server is written in C# using .NET Core 3.0, and can be hosted on any Windows, Mac or linux computer. You may use the public server hosted by the Next team, or run your own private copy of the server on your PC. You may also run the server on a Raspberry Pi running Raspbian. It is lightweight enough to run on a wifi-equipped Raspberry Pi Zero W.
 
 ## Project Status
 *nxtp* is currently in alpha testing. Please check back soon for details of how to use *nxtp* on your Next. If you have a GitHub account you can elect to be notified whenever there is a project release.
