@@ -3,7 +3,7 @@
 
 ## *nxtp* Client
 
-A dot command client for the [ZX Spectrum Next](https://www.specnext.com/about/)™ is provided, written in Z80N assembly language. You may add a command to your `AUTOEXEC.BAS` BASIC startup program to automatically sync the time whenever you boot into NextZXOS. Your Next must be equipped with a RTC in order to use *nxtp*.
+An `.nxtp` dot command client for the [ZX Spectrum Next](https://www.specnext.com/about/)™ is provided, written in Z80N assembly language. You may add a command to your `AUTOEXEC.BAS` BASIC startup program to automatically sync the time whenever you boot into NextZXOS. Your Next must be equipped with a RTC in order to use *nxtp*.
 
 You can tell *nxtp* to [set the local time in your own timezone](https://github.com/Threetwosevensixseven/nxtp/wiki/Timezone-Codes), including any daylight savings time currently in effect.
 
