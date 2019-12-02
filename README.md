@@ -5,7 +5,7 @@ Network neXt Time Protocol is an easy way of getting local time on 8-bit compute
 
 A dot command client for the ZX Spectrum Next is written in Z80N assembly language. You may add a command to your AUTOEXEC.BAS file to automatically sync the time every time you boot into NextZXOS. Your Next must be equipped with the RTC (Real Time Clock) in order to make use of *nxtp*.
 
-You can [configure](wiki/Timezone-Codes) *nxtp* to set the local time in your own timezone, including any daylight savings time currently in effect.
+You can tell *nxtp* to [set the local time in your own timezone](https://github.com/Threetwosevensixseven/nxtp/wiki/Timezone-Codes), including any daylight savings time currently in effect.
 
 We also provide a C# reference client using .NET Core 3.0, to assist with porting to other architectures or machines.
 
