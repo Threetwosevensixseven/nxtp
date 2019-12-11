@@ -1,0 +1,128 @@
+; parse.asm
+
+FindColonOrCR           proc
+                        ld bc, 0
+Loop:                   ld a, (hl)
+                        cp ':'
+                        ret z
+                        cp CR
+                        ret z
+                        inc hl
+                        inc bc
+                        jr Loop
+pend
+
+FindNonSpace            proc
+                        ld de, (ArgsEnd)
+Loop:                   ld a, (hl)
+                        cp Space
+                        ret nz                          ; Return with carry clear if found
+                        inc hl
+                        ld a, e
+                        cp l
+                        jr nz, Loop
+                        ld a, d
+                        cp h
+                        jr nz, Loop
+                        scf
+                        ret                             ; Return with carry set if not found
+pend
+
+FindSpace               proc
+                        ld bc, 0
+                        ld de, (ArgsEnd)
+Loop:                   ld a, (hl)
+                        cp Space
+                        ret z                           ; Return with carry clear if found
+                        inc hl
+                        inc bc
+                        ld a, e
+                        cp l
+                        jr nz, Loop
+                        ld a, d
+                        cp h
+                        jr nz, Loop
+                        scf
+                        ret                             ; Return with carry set if not found
+pend
+
+FindSpaceColonCR        proc
+                        ld bc, 0
+                        ld de, (ArgsEnd)
+Loop:                   ld a, (hl)
+                        cp Space
+                        ret z                           ; Return with carry clear if found
+                        cp ':'
+                        ret z                           ; Return with carry clear if found
+                        cp CR
+                        ret z                           ; Return with carry clear if found
+                        inc hl
+                        inc bc
+                        ld a, e
+                        cp l
+                        jr nz, Loop
+                        ld a, d
+                        cp h
+                        jr nz, Loop
+                        scf
+                        ret                             ; Return with carry set if not found
+pend
+
+GetBufferLength         proc
+                        push hl
+                        ld bc, BufferLen
+                        xor a
+                        cpir
+                        dec hl
+                        pop de
+                        push de
+                        sbc hl, de
+                        ld e, l
+                        pop hl
+                        ret
+pend
+
+ConvertWordToAsc        proc                            ; Input word in hl
+                        ld de, WordStart                ; Returns with output word in hl and length in a
+                        ld bc, -10000
+                        call Num1
+                        ld bc, -1000
+                        call Num1
+                        ld bc, -100
+                        call Num1
+                        ld c, -10
+                        call Num1
+                        ld c, -1
+                        call Num1
+                        ld hl, WordStart
+                        ld b, 5
+                        ld c, '0'
+FindLoop:               ld a, (hl)
+                        cp c
+                        jp nz, Found
+                        inc hl
+                        djnz FindLoop
+Found:                  ld a, b
+                        ld (WordLen), a
+                        ld (WordStart), hl
+                        ret
+Num1:                   ld a, '0'-1
+Num2:                   inc a
+                        add hl, bc
+                        jr c, Num2
+                        sbc hl, bc
+                        ld (de), a
+                        inc de
+                        ret
+pend
+
+DecimalDigits proc Table:
+
+; Multipler  Index  Digits
+  dw      1  ;   0       1
+  dw     10  ;   1       2
+  dw    100  ;   2       3
+  dw   1000  ;   3       4
+  dw  10000  ;   4       5
+pend
+

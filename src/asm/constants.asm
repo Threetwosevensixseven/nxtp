@@ -1,14 +1,28 @@
 ; constants.asm
 
+; Application
+MaxHostSize             equ 60
+MaxPortSize             equ 5
+MaxZoneSize             equ 32
+ProtocolVersion         equ 1
+ChecksumSeed            equ 123
 
+; UART
+UART_RxD                equ $143B                       ; Also used to set the baudrate
+UART_TxD                equ $133B                       ; Also reads status
+UART_SetBaud            equ UART_RxD                    ; Sets baudrate
+UART_GetStatus          equ UART_TxD                    ; Reads status bits
+UART_mRX_DATA_READY     equ %xxxxx 0 0 1                ; Status bit masks
+UART_mTX_BUSY           equ %xxxxx 0 1 0                ; Status bit masks
+UART_mRX_FIFO_FULL      equ %xxxxx 1 0 0                ; Status bit masks
+ESPTimeout              equ 10000
 
-; General
+; Chars
 SMC                     equ 0
 CR                      equ 13
+LF                      equ 10
 Space                   equ 32
 Copyright               equ 127
-
-
 
 ; Screen
 SCREEN                  equ $4000                       ; Start of screen bitmap
@@ -21,8 +35,6 @@ FRAMES                  equ 23672                       ; Frame counter
 BORDCR                  equ 23624                       ; Border colour system variable
 ULA_PORT                equ $FE                         ; out (254), a
 STIMEOUT                equ $5C81                       ; Screensaver control sysvar
-
-
 
 ; Font
 FWSpace                 equ 2
