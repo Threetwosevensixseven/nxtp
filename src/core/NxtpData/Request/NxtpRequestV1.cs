@@ -83,6 +83,7 @@ namespace NxtpData.Request
 
             // Get timezone and see if it is in the current server list
             string zone = (Encoding.ASCII.GetString(Data, 2, payloadLength) ?? "").Replace(" ", "").Trim().ToLower();
+            zone = TimezoneList.ResolveAlias(zone);
             if (string.IsNullOrWhiteSpace(zone))
                 return rv;
             TimeZoneInfo zoneMatched = null;

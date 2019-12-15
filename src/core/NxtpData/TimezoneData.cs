@@ -18,5 +18,14 @@ namespace NxtpData
             }
             return list;
         }
+
+        public static string ResolveAlias(string TimeZoneCode)
+        {
+            if (string.IsNullOrWhiteSpace(TimeZoneCode))
+                return "gmtstandardtime";
+            else if (TimeZoneCode == "gmt")
+                return "gmtstandardtime";
+            return TimeZoneCode;
+        }
     }
 }

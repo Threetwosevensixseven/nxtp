@@ -61,12 +61,14 @@ mend
 PrintMsgRetToBASIC      macro(MsgAddr)
                         ld hl, MsgAddr
                         call PrintRst16
-                        jp ReturnToBasic
+                        jp Return.ToBasic
 mend
 
 ErrorIfCarry            macro(ErrAddr)
+                        jp nc, Continue
                         ld hl, ErrAddr
-                        jp c, ReturnWithError
+                        jp Return.WithError
+Continue:
 mend
 
 WriteString             macro(StringAddr, StringLen)
@@ -87,6 +89,11 @@ AddHL                   macro (WordValue)               ; Next-only opcode
                         dw WordValue
 mend
 
+MirrorA                 macro()
+                        noflow
+                        db $ED, $24
+mend
+
 FillLDIR                macro(SourceAddr, Size, Value)
                         ld a, Value
                         ld hl, SourceAddr
@@ -94,5 +101,11 @@ FillLDIR                macro(SourceAddr, Size, Value)
                         ld de, SourceAddr+1
                         ld bc, Size-1
                         ldir
+mend
+
+NextRegRead             macro(Register)
+                        ld bc, Port.NextReg             ; Port.NextReg = $243B
+                        ld a, Register
+                        call NextRegReadProc
 mend
 

@@ -64,7 +64,8 @@ Loop:                   ld a, (hl)
                         ld a, d
                         cp h
                         jr nz, Loop
-                        scf
+                        //scf
+                        or a
                         ret                             ; Return with carry set if not found
 pend
 
@@ -124,5 +125,12 @@ DecimalDigits proc Table:
   dw    100  ;   2       3
   dw   1000  ;   3       4
   dw  10000  ;   4       5
+pend
+
+NextRegReadProc         proc
+                        out (c), a
+                        inc b
+                        in a, (c)
+                        ret
 pend
 

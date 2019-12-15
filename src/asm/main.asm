@@ -1,15 +1,43 @@
 ; main.asm
-                                                        ; Assembles with regular version of Zeus not Next version,
+                                                        ; Assembles with regular version of Zeus (not Next version),
 zeusemulate             "48K", "RAW", "NOROM"           ; because that makes it easier to assemble dot commands
-zoSupportStringEscapes  = true;
-optionsize 5                                            ; Option to launch CSpect in Zeus GUI
-CSpect optionbool 15, -15, "CSpect", false
+zoSupportStringEscapes  = true;                         ; Download Zeus.exe from http://www.desdes.com/products/oldfiles/
+optionsize 5
+CSpect optionbool 15, -15, "CSpect", false              ; Option in Zeus GUI to launch CSpect
+RealESP optionbool 80, -15, "Real ESP", true            ; Launch CSpect with physical ESP in USB adaptor
+UploadNext optionbool 160, -15, "Next", false           ; Copy dot command to Next FlashAir card
 
 org $2000                                               ; Dot commands always start at $2000
 Start:                  jp Main                         ; Entry point, jump to start of code
                         include "vars.asm"              ; Keep global vars fixed here for easy debugging
 
 Main                    proc
+                        di
+                        ld (Return.Stack1), sp          ; Save stack so we can always return without needing
+                        ld (Return.Stack2), sp          ; to unwind any nested calls if there is an error.
+                        ld (SavedArgs), hl              ; Save args for later
+
+                        ld a, %0000 0001                ; Test for Next courtesy of Simon N Goodwin, thanks :)
+                        MirrorA()                       ; Z80N-only opcode. If standard Z80 or successors, this
+                        nop                             ; will be executed as benign opcodes that don't affect A.
+                        nop
+                        cp %1000 0000                   ; Test that A was mirrored as expected
+                        ld hl, Errors.NotNext           ; Error message to display
+                        jp nz, Return.WithError         ; Exit with error if not a Next
+
+                        NextRegRead(Reg.MachineID)      ; If we passed that test we are safe to read machine ID.
+                        cp 10                           ; 10 = ZX Spectrum Next
+                        jp z, SetSpeed
+                        cp 8                            ;  8 = Emulator
+                        jp nz, Return.WithError         ; Exit with error if not a Next. HL still points to message.
+SetSpeed:
+                        NextRegRead(Reg.CPUSpeed)       ; Read CPU speed
+                        and %11                         ; Mask out everything but the current desired speed
+                        ld (Return.CPU1), a             ; Save current speed
+                        ld (Return.CPU2), a             ; So it can be restored on exit
+                        nextreg Reg.CPUSpeed, %11       ; Set current desired speed to 14MHz
+
+SavedArgs equ $+1:      ld hl, SMC                      ; Restore args
                         ld a, h                         ; Check args length
                         or l
                         jp z, PrintHelp                 ; If hl was 0 then there are no args at all
@@ -56,7 +84,7 @@ ParseZone:
                         jp nz, NoZone                   ; Skip if no zone
                         inc hl
                         ld (ZoneStart), hl              ; Save start of zone
-                        call FindSpace                  ; Find end of zone
+                        call FindSpaceColonCR           ; Find end of zone
                         ld (ZoneLen), bc
                         jp c, NoZone                    ; Skip if no zone
                         ld hl, MaxZoneSize
@@ -114,7 +142,9 @@ MakeRequest:
                         ld hl, (ZoneLen)                ; Calculate request len (inc checksum)
                         AddHL(3)
                         ld (RequestLen), hl
-                        dec hl                          ; Number of bytes to checksum (one less)
+                        //dec hl                          ; Number of bytes to checksum (one less)
+                        //dec hl
+                        dec hl
                         ex de, hl
                         ld hl, Buffer
                         ld a, ChecksumSeed
@@ -127,6 +157,10 @@ ChecksumLoop:           xor (hl)                        ; Calculate checksum
                         ld a, d
                         jr nz, ChecksumLoop             ; otherwise process next byte
                         ld (hl), a                      ; Write checksum as final byte
+                        //inc hl
+                        //ld (hl), CR
+                        //inc hl
+                        //ld (hl), LF
 CalcPacketLength:
                         ld hl, (RequestLen)
                         call ConvertWordToAsc
@@ -142,21 +176,23 @@ MakeCIPSend:
 SendRequest:
                         ESPSendBuffer(MsgBuffer)
                         call ESPReceiveWaitOK
-                        ErrorIfCarry(Errors.ESPComms)   ; Raise ESP error if no response
+                        ErrorIfCarry(Errors.ESPComms)   ; Raise wifi error if no response
                         call ESPReceiveWaitPrompt
-                        ErrorIfCarry(Errors.ESPComms)   ; Raise ESP error if no response
+                        ErrorIfCarry(Errors.ESPComms)   ; Raise wifi error if no prompt
                         ld de, Buffer
                         ESPSendBufferLen(Buffer, RequestLen)
-                        ErrorIfCarry(Errors.ESPConn)    ; Raise ESP error if no connection
-GetResponse:
-                        //call ESPReceiveIPDInit
-MainLoop:               //call ESPReceiveIPD
+                        ErrorIfCarry(Errors.ESPConn)    ; Raise connection error
 
-                        ld hl, Buffer
-                        CSBreak()
+                        call ESPReceiveBuffer
+                        call ParseIPDPacket
+                        ErrorIfCarry(Errors.ESPConn)    ; Raise connection error if no IPD packet
 
-Freeze:
-                        Freeze(1, 4)
+                        //ld hl, Buffer
+                        //CSBreak()
+
+Freeze:                 ei:Freeze(1, 4)
+
+                        jp Return.ToBasic
 NoZone:
                         ld hl, 0
                         ld (ZoneStart), hl
@@ -164,15 +200,19 @@ NoZone:
                         jp MakeCIPStart
 pend
 
-ReturnToBasic           proc
-Return:                 xor a
+Return                  proc
+ToBasic:
+CPU1 equ $+3:           nextreg Reg.CPUSpeed, SMC       ; Restore original CPU speed
+                        xor a
+Stack1 equ $+1:         ld sp, SMC                      ; Unwind stack to original point
+                        ei
                         ret                             ; Return to BASIC
-pend
-
-ReturnWithError         proc
-                        CSBreak()
+WithError:
+CPU2 equ $+3:           nextreg Reg.CPUSpeed, SMC       ; Restore original CPU speed
                         xor a
                         scf                             ; Signal error, hl = custom error message
+Stack2 equ $+1:         ld sp, SMC                      ; Unwind stack to original point
+                        ei
                         ret                             ; Return to BASIC
 pend
 
@@ -195,8 +235,16 @@ endif
 
 output_bin "..\\..\\dot\\NXTP", Start, Length
 
+if enabled UploadNext
+  output_bin "R:\\dot\\NXTP", Start, Length
+endif
+
 if enabled CSpect
-  zeusinvoke "..\\..\\build\\cspect.bat"
+  if enabled RealESP
+    zeusinvoke "..\\..\\build\\cspect.bat"
+  else
+    zeusinvoke "..\\..\\build\\cspect-emulate-esp.bat"
+  endif
 else
   zeusinvoke "..\\..\\build\\builddot.bat"
 endif

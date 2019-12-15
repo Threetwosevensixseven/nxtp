@@ -17,6 +17,8 @@ Errors                  proc
   ESPComms:             db "WiFi communication erro", 'r'|128, 0
   ESPConn:              db "Server connection erro", 'r'|128, 0
   ZoneLen:              db "ZONE too lon", 'g'|128, 0
+  NotNext:              db "Next require", 'd'|128, 0
+  ESPTimeout:           db "WiFi or server timeou", 't'|128, 0
 pend
 
 Commands                proc
@@ -42,7 +44,7 @@ pend
 PrintHelp               proc
                         ld hl, Msg
                         call PrintRst16
-                        jp ReturnToBasic
+                        jp Return.ToBasic
 Msg:                    db "NXTP", CR
                         db "Set date/time from internet", CR, CR
                         db "nxtp", CR

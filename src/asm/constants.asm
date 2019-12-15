@@ -15,7 +15,19 @@ UART_GetStatus          equ UART_TxD                    ; Reads status bits
 UART_mRX_DATA_READY     equ %xxxxx 0 0 1                ; Status bit masks
 UART_mTX_BUSY           equ %xxxxx 0 1 0                ; Status bit masks
 UART_mRX_FIFO_FULL      equ %xxxxx 1 0 0                ; Status bit masks
-ESPTimeout              equ 10000
+ESPTimeout              equ 65535                       ; Use 10000 for 3.5MHz, but 28NHz needs to be 65535
+ESPTimeout2             equ 10000                       ; Use 10000 for 3.5MHz, but 28NHz needs to be 65535
+
+; Ports
+Port                    proc
+  NextReg               equ $243B
+pend
+
+; Registers
+Reg                     proc
+  MachineID             equ $00
+  CPUSpeed              equ $07
+pend
 
 ; Chars
 SMC                     equ 0

@@ -27,7 +27,6 @@ ESPSendBufferLen        macro(Address, LenAddr)         ; 1 <= length(Text) <= 2
 mend
 
 ESPSendProc             proc
-                        di
                         call InitESPTimeout
                         ld bc, UART_GetStatus           ; UART Tx port also gives the UART status when read
 ReadNextChar:           ld d, (hl)                      ; Read the next byte of the text to be sent
@@ -38,14 +37,12 @@ WaitNotBusy:            in a, (c)                       ; Read the UART status
                         inc hl                          ; Move to next byte of the text
                         dec e                           ; Check whether there are any more bytes of text
                         jp nz, ReadNextChar             ; If there are, read and repeat
-                        ei
                         jp (hl)                         ; Otherwise we are now pointing at the byte after the macro
 CheckTimeout:           call CheckESPTimeout
                         jp WaitNotBusy
 pend
 
 ESPSendBufferProc       proc
-                        di
                         call InitESPTimeout
                         ld bc, UART_GetStatus           ; UART Tx port also gives the UART status when read
 ReadNextChar:           ld d, (hl)                      ; Read the next byte of the text to be sent
@@ -56,14 +53,12 @@ WaitNotBusy:            in a, (c)                       ; Read the UART status
                         inc hl                          ; Move to next byte of the text
                         dec e                           ; Check whether there are any more bytes of text
                         jp nz, ReadNextChar             ; If there are, read and repeat
-                        ei
                         ret
 CheckTimeout:           call CheckESPTimeout
                         jp WaitNotBusy
 pend
 
 ESPReceiveWaitOK        proc
-                        di
                         call InitESPTimeout
                         xor a
                         ld (State), a
@@ -95,7 +90,6 @@ Compare equ $+1:        ld de, SMC
                         jp nz, NotReady
                         ld a, (State)
                         cp 0
-                        ei
                         ret
 MatchSubsequent:        inc hl
                         jp Print
@@ -135,7 +129,6 @@ SendFailEnd:
 pend
 
 ESPReceiveWaitPrompt    proc
-                        di
                         call InitESPTimeout
                         ld a, high UART_GetStatus       ; Are there any characters waiting?
 WaitNotBusy:            in a, (low UART_GetStatus)      ; This inputs from the 16-bit address UART_GetStatus
@@ -168,167 +161,116 @@ Value equ $+1:          ld hl, SMC
                         ld a, h
                         or l
                         jp z, Failure
+Success:                pop af
+                        pop hl
+                        ret
+Failure:                ld hl, Errors.ESPTimeout        ; Ignore current stack depth, and just jump
+                        jp Return.WithError             ; Straight to the error handing exit routine
+pend
+
+CheckESPTimeout2        proc
+                        push hl
+                        push af
+Value equ $+1:          ld hl, SMC
+                        dec hl
+                        ld (Value), hl
+                        ld a, h
+                        or l
+                        jp z, Failure
 Success:
                         pop af
                         pop hl
+                        or a
                         ret
 Failure:
                         pop af
                         pop hl
-                        pop af
                         scf
                         ret
 pend
-/*
-ESPReceiveIPDInit       proc
-                        ld a, $F3                       ; $F3 = di
-                        ld (ESPReceiveIPD), a
-                        //ld a, Teletext.ClearBit7
-                        //ld (ESPReceiveIPD.Bit7), a
-                        //ld hl, ESPReceiveIPD.SizeBuffer
-                        ld (ESPReceiveIPD.SizePointer), hl
-                        FillLDIR(ESPReceiveIPD.SizeBuffer, ESPReceiveIPD.SizeBufferLen, 0)
-                        FillLDIR(Buffer, BufferLen, ' ')
-                        ld hl, ESPReceiveIPD.FirstChar
-                        ld (ESPReceiveIPD.StateJump), hl
-                        ld (ESPReceiveIPD.CurrentState), hl
+
+ESPReceiveBuffer        proc
+                        ld hl, ESPTimeout2
+                        ld (CheckESPTimeout2.Value), hl
+                        ld hl, Buffer
+                        ld de, BufferLen
+ReadLoop:               ld a, high UART_GetStatus       ; Are there any characters waiting?
+                        in a, (low UART_GetStatus)      ; This inputs from the 16-bit address UART_GetStatus
+                        rrca                            ; Check UART_mRX_DATA_READY flag in bit 0
+                        jp nc, CheckTimeout             ; Return immmediately if not ready (we call this in a tight loop)
+                        ld a, high UART_RxD             ; Otherwise Read the byte
+                        in a, (low UART_RxD)            ; from the UART Rx port
+                        ld (hl), a
+                        inc hl
+                        dec de
+                        ld a, d
+                        or e
+                        jp z, Finished
+                        jp ReadLoop
+CheckTimeout:           call CheckESPTimeout2
+                        jp nc, ReadLoop
+Finished:               ld hl, BufferLen
+                        sbc hl, de
+                        inc hl
+                        ld (ResponseLen), hl
                         ret
 pend
 
-ESPReceiveIPD           proc
-                        di
-CurrentState equ $+1:   ld hl, SMC
-                        ld a, high UART_GetStatus       ; Are there any characters waiting?
-                        in a, (low UART_GetStatus)      ; This inputs from the 16-bit address UART_GetStatus
-                        rrca                            ; Check UART_mRX_DATA_READY flag in bit 0
-                        jp nc, Return                   ; Return immmediately if not ready (we call this in a tight loop)
-                        ld a, high UART_RxD             ; Otherwise Read the byte
-                        in a, (low UART_RxD)            ; from the UART Rx port
-StateJump equ $+1:      jp SMC
-FirstChar:              cp '+'
-                        jp z, MatchPlusIPD
-SubsequentChar:         cp (hl)
-                        jp z, MatchSubsequent
-Print:
-Compare equ $+1:        ld de, SMC
-                        CpHL(de)
-                        jp z, MatchSize
-Return:                 ld a, 1
-                        or a                            ; Clear Z flag
-                        ei
-                        ret
-MatchPlusIPD:           ld hl, SubsequentChar
-                        ld (StateJump), hl
-                        ld hl, PlusIPDEnd
-                        ld (Compare), hl
-                        ld hl, PlusIPD
-                        ld (CurrentState), hl
-                        jp Print
-MatchSize:              ld hl, CaptureSize
-                        ld (StateJump), hl
-                        ld (Compare), hl
-                        jp Return
-MatchSubsequent:        inc hl
-                        ld (CurrentState), hl
-                        jp Print
-//Hex:                    call PrintHex
-//                        jp PrintReturn
-CaptureSize:            cp ':'
-                        jp z, EndOfSize
-                        cp ';'
-                        jp z, EndOfSize
-SizePointer equ $+1:    ld hl, SMC
-                        ld (hl), a
-                        inc hl
-                        ld (SizePointer), hl
-                        jp Print
-FillBuffer:             ld b, a
-                        //cp Teletext.Escape
-                        //jp z, EscapeNextChar
-FillBufferPointer equ $+1: ld hl, SMC
-                        //or [Bit7]SMC
-                        ld (hl), a
-                        inc hl
-                        ld (FillBufferPointer), hl
-                        ld hl, (PacketSize)
-                        dec hl
-                        ld (PacketSize), hl
-                        dec hl
-                        ld a, h
-                        or l
-                        //ld a, Teletext.ClearBit7
-                        //ld (Bit7), a
-                        ld a, b
-                        jp z, PacketCompleted
-                        jp Print
-EscapeNextChar:         //ld a, Teletext.SetBit7
-                        //ld (Bit7), a
-                        //ld hl, (ProcessESPBufferToPage.SourceCount)
-                        //dec hl
-                        //ld (ProcessESPBufferToPage.SourceCount), hl
-                        //ld hl, (PacketSize)
-                        //dec hl
-                        //ld (PacketSize), hl
-                        ld a, b
-                        jp Print
-EndOfSize:              ld hl, FillBuffer
-                        ld (StateJump), hl
-                        ld hl, 0
-                        ld (PacketSize), hl
-                        ld hl, SizeBuffer-1
-                        ld (SizePointer2), hl
-                        ld hl, (SizePointer)
-DigitLoop:              ld de, SizeBuffer
-                        sbc hl, de
-                        ld a, l
-                        or a
-                        jp z, FinishedCounting
-                        dec a
-                        add a, a
-                        ld hl, DecimalDigits
-                        add hl, a
-                        ld e, (hl)
-                        inc hl
-                        ld d, (hl)
-SizePointer2 equ $+1:   ld hl, SMC
-                        inc hl
-                        ld (SizePointer2), hl
-                        ld a, (hl)
-                        sub '0'
-                        jp z, Zero
-                        ld b, a
-PacketSize equ $+1:     ld hl, SMC
-Add:                    add hl, de
-                        djnz Add
-                        ld (PacketSize), hl
-Zero:                   ld hl, (SizePointer)
-                        dec hl
-                        ld (SizePointer), hl
-                        jp DigitLoop
-FinishedCounting:
-                        ld hl, (PacketSize)
-                        inc hl
-                        ld (PacketSize), hl
-                        dec hl
-                        //ld (ProcessESPBufferToPage.SourceCount), hl
+ParseIPDPacket          proc
                         ld hl, Buffer
-                        ld (FillBufferPointer), hl
-                        jp Print
-PacketCompleted:        //ld b, a
-                        ld a, $C9                       ; $C9 = ret
-                        ld (ESPReceiveIPD), a
-                        //call ProcessESPBufferToPage
-                        //ld a, b
-                        //jp Print
-                        xor a                           ; Clear Z flag
-                        ei
+                        ld bc, (ResponseLen)
+SearchAgain:            ld a, b
+                        or a
+                        jp m, NotFound                  ; If bc has gone negative then not found
+                        or c
+                        jp z, NotFound                  ; If bc is zero then not found
+                        ld a, '+'
+                        cpir
+                        jp po, NotFound
+                        ld a, (hl)
+                        cp 'I'
+                        jr nz, SearchAgain
+                        inc hl
+                        dec bc
+                        ld a, (hl)
+                        cp 'P'
+                        jr nz, SearchAgain
+                        inc hl
+                        dec bc
+                        ld a, (hl)
+                        cp 'D'
+                        jr nz, SearchAgain
+                        inc hl
+                        dec bc
+                        ld a, (hl)
+                        cp ','
+                        jr nz, SearchAgain
+                        inc hl
+ParseNumber:
+                        //CSBreak()
+                        ld de, WordStart
+                        ld bc, 0
+ParseNumberLoop:        ld a, (hl)
+                        cp ':'
+                        jr z, FinishedNumber
+                        cp '0'
+                        jp c, NotFound
+                        cp '9'+1
+                        jp nc, NotFound
+                        ld (de), a
+                        inc hl
+                        inc bc
+                        ld a, b
+                        or c
+                        cp 6
+                        jp c, ParseNumberLoop
+FinishedNumber:
+                        //CSBreak()
+
+
                         ret
-PlusIPD:                db "IPD,"
-PlusIPDEnd:
-SizeBuffer:             ds 6
-                        ds 6
-SizeBufferLen           equ $-SizeBuffer
-SizeBufferEnd           equ $-1
+NotFound:
+                        scf
+                        ret
 pend
-*/
 
