@@ -165,7 +165,7 @@ Success:                pop af
                         pop hl
                         ret
 Failure:                ld hl, Errors.ESPTimeout        ; Ignore current stack depth, and just jump
-                        jp Return.WithError             ; Straight to the error handing exit routine
+                        jp Return.WithCustomError       ; Straight to the error handing exit routine
 pend
 
 CheckESPTimeout2        proc

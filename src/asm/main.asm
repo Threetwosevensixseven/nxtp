@@ -14,8 +14,10 @@ Start:                  jp Main                         ; Entry point, jump to s
 Main                    proc
                         di
                         ld (Return.Stack1), sp          ; Save stack so we can always return without needing
-                        ld (Return.Stack2), sp          ; to unwind any nested calls if there is an error.
                         ld (SavedArgs), hl              ; Save args for later
+
+                        call InstallErrorHandler        ; Handle esxDOS and scroll errors
+                        //jp ErrorHandler
 
                         ld a, %0000 0001                ; Test for Next courtesy of Simon N Goodwin, thanks :)
                         MirrorA()                       ; Z80N-only opcode. If standard Z80 or successors, this
@@ -23,18 +25,18 @@ Main                    proc
                         nop
                         cp %1000 0000                   ; Test that A was mirrored as expected
                         ld hl, Errors.NotNext           ; Error message to display
-                        jp nz, Return.WithError         ; Exit with error if not a Next
+                        jp nz, Return.WithCustomError   ; Exit with error if not a Next
 
                         NextRegRead(Reg.MachineID)      ; If we passed that test we are safe to read machine ID.
                         cp 10                           ; 10 = ZX Spectrum Next
                         jp z, SetSpeed
                         cp 8                            ;  8 = Emulator
-                        jp nz, Return.WithError         ; Exit with error if not a Next. HL still points to message.
+                        jp nz, Return.WithCustomError   ; Exit with error if not a Next. HL still points to message.
 SetSpeed:
                         NextRegRead(Reg.CPUSpeed)       ; Read CPU speed
                         and %11                         ; Mask out everything but the current desired speed
-                        ld (Return.CPU1), a             ; Save current speed
-                        ld (Return.CPU2), a             ; So it can be restored on exit
+                        ld (Return.CPU1), a             ; Save current speed so it
+                        ld (Return.CPU2), a             ; can be restored on exit
                         nextreg Reg.CPUSpeed, %11       ; Set current desired speed to 14MHz
 
 SavedArgs equ $+1:      ld hl, SMC                      ; Restore args
@@ -200,20 +202,32 @@ NoZone:
                         jp MakeCIPStart
 pend
 
+InstallErrorHandler     proc
+                        ld hl, ErrorHandler
+                        rst 8
+                        noflow
+                        db M_ERRH
+                        ret
+pend
+
+ErrorHandler proc
+                        ld hl, Errors.Break
+                        jp Return.WithCustomError
+pend
+
 Return                  proc
 ToBasic:
 CPU1 equ $+3:           nextreg Reg.CPUSpeed, SMC       ; Restore original CPU speed
                         xor a
-Stack1 equ $+1:         ld sp, SMC                      ; Unwind stack to original point
+Stack                   ld sp, SMC                      ; Unwind stack to original point
+Stack1                  equ Stack+1
                         ei
                         ret                             ; Return to BASIC
-WithError:
+WithCustomError:
 CPU2 equ $+3:           nextreg Reg.CPUSpeed, SMC       ; Restore original CPU speed
                         xor a
                         scf                             ; Signal error, hl = custom error message
-Stack2 equ $+1:         ld sp, SMC                      ; Unwind stack to original point
-                        ei
-                        ret                             ; Return to BASIC
+                        jp Stack
 pend
 
                         include "constants.asm"         ; Global constants

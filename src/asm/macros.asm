@@ -67,7 +67,7 @@ mend
 ErrorIfCarry            macro(ErrAddr)
                         jp nc, Continue
                         ld hl, ErrAddr
-                        jp Return.WithError
+                        jp Return.WithCustomError
 Continue:
 mend
 

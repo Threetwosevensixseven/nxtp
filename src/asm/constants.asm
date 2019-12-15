@@ -6,6 +6,10 @@ MaxPortSize             equ 5
 MaxZoneSize             equ 32
 ProtocolVersion         equ 1
 ChecksumSeed            equ 123
+__ESX_RST_SYS           equ 8
+
+; esxDOS
+M_ERRH                  equ $95
 
 ; UART
 UART_RxD                equ $143B                       ; Also used to set the baudrate

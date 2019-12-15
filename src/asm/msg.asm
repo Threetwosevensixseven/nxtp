@@ -19,6 +19,7 @@ Errors                  proc
   ZoneLen:              db "ZONE too lon", 'g'|128, 0
   NotNext:              db "Next require", 'd'|128, 0
   ESPTimeout:           db "WiFi or server timeou", 't'|128, 0
+  Break:                db "D BREAK - CONT repeat", 's'|128, 0
 pend
 
 Commands                proc
@@ -33,12 +34,15 @@ Commands                proc
 pend
 
 PrintRst16              proc
+                        ei
                         ld a, (hl)
                         inc hl
                         or a
-                        ret z
+                        jr z, Return
                         rst 16
                         jr PrintRst16
+Return:                 di
+                        ret
 pend
 
 PrintHelp               proc
