@@ -107,6 +107,7 @@ InitialiseESP:
                         ErrorIfCarry(Errors.ESPComms)   ; Raise ESP error if no response
                         ESPSend("AT+CIPCLOSE")          ; Don't raise error on CIPCLOSE
                         call ESPReceiveWaitOK           ; Because it might not be open
+                        //ErrorIfCarry(Errors.ESPComms) ; We never normally want to raise an error after CLOSE
                         ESPSend("AT+CIPMUX=0")
                         ErrorIfCarry(Errors.ESPComms)   ; Raise ESP error if no response
                         call ESPReceiveWaitOK
@@ -115,7 +116,7 @@ Connect:
                         PrintMsg(Messages.Connect1)
                         PrintBuffer(HostStart, HostLen)
                         PrintMsg(Messages.Connect2)
-                        ESPSendBuffer(Buffer)
+                        ESPSendBuffer(Buffer)           ; This is AT+CIPSTART="TCP","<server>",<port>\r\n
                         ErrorIfCarry(Errors.ESPConn)    ; Raise ESP error if no connection
                         call ESPReceiveWaitOK
                         ErrorIfCarry(Errors.ESPConn)    ; Raise ESP error if no response
@@ -184,6 +185,8 @@ SendRequest:
                         ld de, Buffer
                         ESPSendBufferLen(Buffer, RequestLen)
                         ErrorIfCarry(Errors.ESPConn)    ; Raise connection error
+
+                        Freeze(1,5)
 
                         call ESPReceiveBuffer
                         call ParseIPDPacket

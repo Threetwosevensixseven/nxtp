@@ -1,12 +1,12 @@
 ; constants.asm
 
 ; Application
+ErrorDebugging          equ true
 MaxHostSize             equ 60
 MaxPortSize             equ 5
 MaxZoneSize             equ 32
 ProtocolVersion         equ 1
 ChecksumSeed            equ 123
-__ESX_RST_SYS           equ 8
 
 ; esxDOS
 M_ERRH                  equ $95

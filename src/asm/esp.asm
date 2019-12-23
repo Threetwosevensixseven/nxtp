@@ -90,6 +90,8 @@ Compare equ $+1:        ld de, SMC
                         jp nz, NotReady
                         ld a, (State)
                         cp 0
+                        ret z
+                        scf
                         ret
 MatchSubsequent:        inc hl
                         jp Print
@@ -165,7 +167,14 @@ Success:                pop af
                         pop hl
                         ret
 Failure:                ld hl, Errors.ESPTimeout        ; Ignore current stack depth, and just jump
-                        jp Return.WithCustomError       ; Straight to the error handing exit routine
+HandleError:
+                        if enabled ErrorDebugging
+                          call PrintRst16Error
+Stop:                     Border(2)
+                          jr Stop
+                        else
+                          jp Return.WithCustomError     ; Straight to the error handing exit routine
+                        endif
 pend
 
 CheckESPTimeout2        proc

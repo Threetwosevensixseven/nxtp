@@ -16,7 +16,7 @@ Errors                  proc
   HostLen:              db "HOSTNAME too lon", 'g'|128, 0
   ESPComms:             db "WiFi communication erro", 'r'|128, 0
   ESPConn:              db "Server connection erro", 'r'|128, 0
-  ZoneLen:              db "ZONE too lon", 'g'|128, 0
+  ZoneLen:              db "Z  ONE too lon", 'g'|128, 0
   NotNext:              db "Next require", 'd'|128, 0
   ESPTimeout:           db "WiFi or server timeou", 't'|128, 0
   Break:                db "D BREAK - CONT repeat", 's'|128, 0
@@ -35,14 +35,31 @@ pend
 
 PrintRst16              proc
                         ei
-                        ld a, (hl)
+Loop:                   ld a, (hl)
                         inc hl
                         or a
                         jr z, Return
                         rst 16
-                        jr PrintRst16
+                        jr Loop
 Return:                 di
                         ret
+pend
+
+PrintRst16Error         proc
+                        ei
+Loop:                   ld a, (hl)
+                        ld b, a
+                        and %1 0000000
+                        ld a, b
+                        jp nz, LastChar
+                        inc hl
+                        rst 16
+                        jr Loop
+Return:                 di
+                        ret
+LastChar                and %0 1111111
+                        rst 16
+                        jr Return
 pend
 
 PrintHelp               proc

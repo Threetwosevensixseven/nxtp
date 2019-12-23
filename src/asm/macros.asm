@@ -67,7 +67,7 @@ mend
 ErrorIfCarry            macro(ErrAddr)
                         jp nc, Continue
                         ld hl, ErrAddr
-                        jp Return.WithCustomError
+                        jp CheckESPTimeout.HandleError
 Continue:
 mend
 
