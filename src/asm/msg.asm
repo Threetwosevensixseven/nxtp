@@ -10,6 +10,7 @@ Messages                proc
   UsingTZDef:           db "Getting default zone (GMT)...", CR, 0
   Sending1:             db "Sending ", 0
   Sending2:             db " chars...", CR, 0
+  Received:             db "Received ", 0
 pend
 
 Errors                  proc
@@ -20,6 +21,7 @@ Errors                  proc
   NotNext:              db "Next require", 'd'|128, 0
   ESPTimeout:           db "WiFi or server timeou", 't'|128, 0
   Break:                db "D BREAK - CONT repeat", 's'|128, 0
+  BadResp:              db "Invalid server respons", 'e'|128, 0
 pend
 
 Commands                proc
@@ -97,6 +99,19 @@ PrintBufferProc         proc
                         inc de
                         ld hl, MsgBuffer
                         call PrintRst16
+                        ret
+pend
+
+PrintBufferLen          proc
+                        ld a, (hl)
+                        ei
+                        rst 16
+                        di
+                        inc hl
+                        dec bc
+                        ld a, b
+                        or c
+                        jr nz, PrintBufferLen
                         ret
 pend
 

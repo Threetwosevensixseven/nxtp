@@ -168,3 +168,15 @@ NextRegReadProc         proc
                         ret
 pend
 
+ReadAndCheckDigit       proc
+                        ld a, (hl)
+                        cp '0'
+                        ret c                           ; Return with carry set if < 0
+                        cp '9'+1
+                        jr nc, Err                      ; Return with carry set if > 9
+                        or a
+                        ret                             ; Return with carry clear if 0..9
+Err:                    scf
+                        ret
+pend
+

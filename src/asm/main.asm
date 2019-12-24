@@ -9,7 +9,7 @@ UploadNext optionbool 160, -15, "Next", false           ; Copy dot command to Ne
 
 org $2000                                               ; Dot commands always start at $2000
 Start:                  jp Main                         ; Entry point, jump to start of code
-                        include "vars.asm"              ; Keep global vars fixed here for easy debugging
+                        //include "vars.asm"              ; Keep global vars fixed here for easy debugging
 
 Main                    proc
                         di
@@ -175,12 +175,101 @@ SendRequest:
                         ErrorIfCarry(Errors.ESPComms)   ; Raise wifi error if no response
                         call ESPReceiveWaitPrompt
                         ErrorIfCarry(Errors.ESPComms)   ; Raise wifi error if no prompt
-                        ld de, Buffer
                         ESPSendBufferLen(Buffer, RequestLen)
                         ErrorIfCarry(Errors.ESPConn)    ; Raise connection error
+ReceiveResponse:
                         call ESPReceiveBuffer
                         call ParseIPDPacket
                         ErrorIfCarry(Errors.ESPConn)    ; Raise connection error if no IPD packet
+ValidateResponse:
+                        ld hl, (ResponseStart)          ; Start of response
+                        ld a, (hl)                      ; Read protocol version
+                        cp ProtoVersion
+                        ErrorIfNonZero(Errors.BadResp)  ; Raise invalid response error if wrong protocol version
+                        inc hl
+                        ld a, (hl)                      ; Read date length
+                        cp ProtoDateLen
+                        ErrorIfNonZero(Errors.BadResp)  ; Raise invalid response error if not length of nn/nn/nnnn
+                        inc hl
+                        ld a, (hl)                      ; Read time length
+                        cp ProtoTimeLen
+                        ErrorIfNonZero(Errors.BadResp)  ; Raise invalid response error if not length of nn:nn:nn
+ValidateDate:
+                        inc hl
+                        call ReadAndCheckDigit          ; Read Date digit 1
+                        ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not Date digit 1
+                        inc hl
+                        call ReadAndCheckDigit          ; Read Date digit 2
+                        ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not Date digit 2
+                        inc hl
+                        ld a, (hl)                      ; Read /
+                        cp '/'
+                        ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not /
+                        inc hl
+                        call ReadAndCheckDigit          ; Read Month digit 1
+                        ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not Month digit 1
+                        inc hl
+                        call ReadAndCheckDigit          ; Read Month digit 2
+                        ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not Month digit 2
+                        inc hl
+                        ld a, (hl)                      ; Read /
+                        cp '/'
+                        ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not /
+                        inc hl
+                        call ReadAndCheckDigit          ; Read Year digit 1
+                        ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not Year digit 1
+                        inc hl
+                        call ReadAndCheckDigit          ; Read Year digit 2
+                        ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not Year digit 2
+                        inc hl
+                        call ReadAndCheckDigit          ; Read Year digit 3
+                        ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not Year digit 3
+                        inc hl
+                        call ReadAndCheckDigit          ; Read Year digit 4
+                        ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not Year digit 4
+ValidateTime:
+                        inc hl
+                        call ReadAndCheckDigit          ; Read Hours digit 1
+                        ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not Hours digit 1
+                        inc hl
+                        call ReadAndCheckDigit          ; Read Hours digit 2
+                        ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not Hours digit 2
+                        inc hl
+                        ld a, (hl)                      ; Read :
+                        cp ':'
+                        ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not :
+                        inc hl
+                        call ReadAndCheckDigit          ; Read Mins digit 1
+                        ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not Mins digit 1
+                        inc hl
+                        call ReadAndCheckDigit          ; Read Mins digit 2
+                        ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not Mins digit 2
+                        inc hl
+                        ld a, (hl)                      ; Read :
+                        cp ':'
+                        ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not :
+                        inc hl
+                        call ReadAndCheckDigit          ; Read Secs digit 1
+                        ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not Secs digit 1
+                        inc hl
+                        call ReadAndCheckDigit          ; Read Secs digit 2
+                        ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not Secs digit 2
+PrintDateTime:
+                        PrintMsg(Messages.Received)
+                        ld hl, (ResponseStart)
+                        ld bc, 3
+                        add hl, bc
+                        ld bc, ProtoDateLen
+                        call PrintBufferLen
+                        ld a, ' '
+                        rst 16
+                        ld hl, (ResponseStart)
+                        ld bc, 13
+                        add hl, bc
+                        ld bc, ProtoTimeLen
+                        call PrintBufferLen
+                        ld a, CR
+                        rst 16
 
 Freeze:                 ei:Freeze(1, 4)
 
@@ -225,6 +314,7 @@ pend
                         include "parse.asm"             ; String and arg parsing routines
                         include "esp.asm"               ; ESP routines
                         include "msg.asm"               ; Messaging and error routines
+                        include "vars.asm"              ; GLobal variables
 
 Length equ $-Start
 zeusprinthex "Command size: ", Length

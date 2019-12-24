@@ -8,6 +8,11 @@ MaxZoneSize             equ 32
 ProtocolVersion         equ 1
 ChecksumSeed            equ 123
 
+; NXTP Protocol
+ProtoVersion            equ 1
+ProtoDateLen            equ 10
+ProtoTimeLen            equ 8
+
 ; esxDOS
 M_ERRH                  equ $95
 

@@ -71,6 +71,13 @@ ErrorIfCarry            macro(ErrAddr)
 Continue:
 mend
 
+ErrorIfNonZero          macro(ErrAddr)
+                        jp z, Continue
+                        ld hl, ErrAddr
+                        jp CheckESPTimeout.HandleError
+Continue:
+mend
+
 WriteString             macro(StringAddr, StringLen)
                         ld hl, StringAddr
                         ld bc, StringLen
