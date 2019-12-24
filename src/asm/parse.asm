@@ -127,6 +127,40 @@ DecimalDigits proc Table:
   dw  10000  ;   4       5
 pend
 
+DecodeDecimalProc       proc                            ; IN:   b = digit count
+                        ld hl, 0                        ; OUT: hl = return value (0..65535)
+                        ld (Total), hl
+DigitLoop:              ld a, b
+                        dec a
+                        add a, a
+                        ld hl, DecimalDigits.Table
+                        add hl, a
+                        ld e, (hl)
+                        inc hl
+                        ld d, (hl)                      ; de = digit multiplier (1, 10, 100, 1000, 10000)
+                        ld (DigitMultiplier), de
+DecimalBuffer equ $+1:  ld hl, SMC
+                        inc hl
+                        ld (DecimalBuffer), hl
+                        ld a, (hl)
+                        sub '0'                         ; a = digit 0..9 (could also be out of range)
+                        exx
+                        ld hl, 0
+                        or a
+                        jp z, DontAdd
+MultiplyLoop:
+DigitMultiplier equ $+2:add hl, SMC                     ; Next-only opcode
+                        dec a
+                        jp nz, MultiplyLoop
+DontAdd:
+Total equ $+2:          add hl, SMC                     ; Next-only opcode
+                        ld (Total), hl
+                        exx
+                        djnz DigitLoop                  ; Repeat until no more digits left (b = 0..5)
+                        ld hl, (Total)                  ; hl = return value (0..65535)
+                        ret
+pend
+
 NextRegReadProc         proc
                         out (c), a
                         inc b

@@ -255,9 +255,7 @@ SearchAgain:            ld a, b
                         cp ','
                         jr nz, SearchAgain
                         inc hl
-ParseNumber:
-                        //CSBreak()
-                        ld de, WordStart
+ParseNumber:            ld (NumStart), hl
                         ld bc, 0
 ParseNumberLoop:        ld a, (hl)
                         cp ':'
@@ -266,7 +264,6 @@ ParseNumberLoop:        ld a, (hl)
                         jp c, NotFound
                         cp '9'+1
                         jp nc, NotFound
-                        ld (de), a
                         inc hl
                         inc bc
                         ld a, b
@@ -274,12 +271,27 @@ ParseNumberLoop:        ld a, (hl)
                         cp 6
                         jp c, ParseNumberLoop
 FinishedNumber:
-                        //CSBreak()
-
-
+                        inc hl
+                        ld (ResponseStart), hl
+                        push bc
+                        ld hl, 5
+                        or a
+                        sbc hl, bc
+                        ld bc, hl
+                        ld hl, Zeroes
+                        ld de, AsciiDec
+                        ldir
+NumStart equ $+1:       ld hl, SMC
+                        pop bc                          ; The five bytes at AsciiDec are now the zero prefixed
+                        ldir                            ; ASCII decimal IPD packet count.
+                        DecodeDecimal(ParseIPDPacket.AsciiDec, 5) ; HL now equals the IPD packet count
+                        ld (ResponseLen), hl
+                        or a                            ; Clear carry, no error, response round
                         ret
 NotFound:
-                        scf
+                        scf                             ; Carry, response not found
                         ret
+AsciiDec:               ds 5
+Zeroes:                 db "00000"
 pend
 

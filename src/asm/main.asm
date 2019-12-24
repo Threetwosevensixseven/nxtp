@@ -17,7 +17,6 @@ Main                    proc
                         ld (SavedArgs), hl              ; Save args for later
 
                         call InstallErrorHandler        ; Handle esxDOS and scroll errors
-                        //jp ErrorHandler
 
                         ld a, %0000 0001                ; Test for Next courtesy of Simon N Goodwin, thanks :)
                         MirrorA()                       ; Z80N-only opcode. If standard Z80 or successors, this
@@ -145,8 +144,6 @@ MakeRequest:
                         ld hl, (ZoneLen)                ; Calculate request len (inc checksum)
                         AddHL(3)
                         ld (RequestLen), hl
-                        //dec hl                          ; Number of bytes to checksum (one less)
-                        //dec hl
                         dec hl
                         ex de, hl
                         ld hl, Buffer
@@ -160,10 +157,6 @@ ChecksumLoop:           xor (hl)                        ; Calculate checksum
                         ld a, d
                         jr nz, ChecksumLoop             ; otherwise process next byte
                         ld (hl), a                      ; Write checksum as final byte
-                        //inc hl
-                        //ld (hl), CR
-                        //inc hl
-                        //ld (hl), LF
 CalcPacketLength:
                         ld hl, (RequestLen)
                         call ConvertWordToAsc
@@ -185,15 +178,9 @@ SendRequest:
                         ld de, Buffer
                         ESPSendBufferLen(Buffer, RequestLen)
                         ErrorIfCarry(Errors.ESPConn)    ; Raise connection error
-
-                        Freeze(1,5)
-
                         call ESPReceiveBuffer
                         call ParseIPDPacket
                         ErrorIfCarry(Errors.ESPConn)    ; Raise connection error if no IPD packet
-
-                        //ld hl, Buffer
-                        //CSBreak()
 
 Freeze:                 ei:Freeze(1, 4)
 

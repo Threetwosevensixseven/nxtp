@@ -109,3 +109,11 @@ NextRegRead             macro(Register)
                         call NextRegReadProc
 mend
 
+DecodeDecimal           macro(Buffer, DigitCount)
+                        ld hl, Buffer
+                        dec hl
+                        ld (DecodeDecimalProc.DecimalBuffer), hl
+                        ld b, DigitCount
+                        call DecodeDecimalProc
+mend
+

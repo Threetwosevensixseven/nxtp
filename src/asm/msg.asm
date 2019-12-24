@@ -16,7 +16,7 @@ Errors                  proc
   HostLen:              db "HOSTNAME too lon", 'g'|128, 0
   ESPComms:             db "WiFi communication erro", 'r'|128, 0
   ESPConn:              db "Server connection erro", 'r'|128, 0
-  ZoneLen:              db "Z  ONE too lon", 'g'|128, 0
+  ZoneLen:              db "ZONE too lon", 'g'|128, 0
   NotNext:              db "Next require", 'd'|128, 0
   ESPTimeout:           db "WiFi or server timeou", 't'|128, 0
   Break:                db "D BREAK - CONT repeat", 's'|128, 0
