@@ -14,16 +14,44 @@ Messages                proc
 pend
 
 Errors                  proc
-  HostLen:              db "HOSTNAME too lon", 'g'|128
-  ESPComms:             db "WiFi communication erro", 'r'|128
-  ESPConn:              db "Server connection erro", 'r'|128
-  ZoneLen:              db "ZONE too lon", 'g'|128
-  NotNext:              db "Next require", 'd'|128
-  ESPTimeout:           db "WiFi or server timeou", 't'|128
+  HostLen:              db "1 HOSTNAME too lon", 'g'|128
+  ESPComms1:            db "2 WiFi communication erro", 'r'|128
+  ESPComms2:            db "3 WiFi communication erro", 'r'|128
+  ESPComms3:            db "4 WiFi communication erro", 'r'|128
+  ESPComms4:            db "5 WiFi communication erro", 'r'|128
+  ESPComms5:            db "6 WiFi communication erro", 'r'|128
+  ESPComms6:            db "7 WiFi communication erro", 'r'|128
+  ESPConn1:             db "8 Server connection erro", 'r'|128
+  ESPConn2:             db "9 Server connection erro", 'r'|128
+  ESPConn3:             db "A Server connection erro", 'r'|128
+  ESPConn4:             db "B Server connection erro", 'r'|128
+  ZoneLen:              db "C ZONE too lon", 'g'|128
   Break:                db "D BREAK - CONT repeat", 's'|128
-  BadResp:              db "Invalid server respons", 'e'|128
-  DateNFF:              db "Missing .date dot comman", 'd'|128
-  TimeNFF:              db "Missing .time dot comman", 'd'|128
+  NotNext:              db "E Next require", 'd'|128
+  ESPTimeout:           db "F WiFi or server timeou", 't'|128
+  DateNFF:              db "G Missing .date comman", 'd'|128
+  TimeNFF:              db "H Missing .time comman", 'd'|128
+  BadResp1:             db "I Invalid server respons", 'e'|128
+  BadResp2:             db "J Invalid server respons", 'e'|128
+  BadResp3:             db "K Invalid server respons", 'e'|128
+  BadResp4:             db "L Invalid server respons", 'e'|128
+  BadResp5:             db "M Invalid server respons", 'e'|128
+  BadResp6:             db "N Invalid server respons", 'e'|128
+  BadResp7:             db "O Invalid server respons", 'e'|128
+  BadResp8:             db "P Invalid server respons", 'e'|128
+  BadResp9:             db "Q Invalid server respons", 'e'|128
+  BadResp10:            db "R Invalid server respons", 'e'|128
+  BadResp11:            db "S Invalid server respons", 'e'|128
+  BadResp12:            db "T Invalid server respons", 'e'|128
+  BadResp13:            db "U Invalid server respons", 'e'|128
+  BadResp14:            db "V Invalid server respons", 'e'|128
+  BadResp15:            db "W Invalid server respons", 'e'|128
+  BadResp16:            db "X Invalid server respons", 'e'|128
+  BadResp17:            db "Y Invalid server respons", 'e'|128
+  BadResp18:            db "Z Invalid server respons", 'e'|128
+  BadResp19:            db "a Invalid server respons", 'e'|128
+  BadResp20:            db "b Invalid server respons", 'e'|128
+  BadResp21:            db "c Invalid server respons", 'e'|128
 pend
 
 Commands                proc
