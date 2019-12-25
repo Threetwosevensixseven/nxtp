@@ -6,7 +6,7 @@ optionsize 5
 CSpect optionbool 15, -15, "CSpect", false              ; Option in Zeus GUI to launch CSpect
 RealESP optionbool 80, -15, "Real ESP", true            ; Launch CSpect with physical ESP in USB adaptor
 UploadNext optionbool 160, -15, "Next", false           ; Copy dot command to Next FlashAir card
-ErrDebug optionbool 212, -15, "Debug", true             ; Print errors onscreen and halt instead of returning to BASIC
+ErrDebug optionbool 212, -15, "Debug", false            ; Print errors onscreen and halt instead of returning to BASIC
 
 org $2000                                               ; Dot commands always start at $2000.
 Start:                  jp Main                         ; Entry point, jump to start of code.
@@ -123,8 +123,9 @@ Connect:
                         ErrorIfCarry(Errors.ESPConn)    ; Raise ESP error if no response
                         //PrintMsg(Messages.Connected)
 PrintAnyZone:
-                        ld a, (ZoneStart)
-                        or a
+                        ld hl, (ZoneStart)
+                        ld a, h
+                        or l
                         jp z, PrintNoZone
 PrintHasZone:           PrintMsg(Messages.UsingTZ)
                         PrintBuffer(ZoneStart, ZoneLen)
@@ -142,8 +143,11 @@ MakeRequest:
                         inc hl
                         ex de, hl
                         ld hl, (ZoneStart)              ; Copy zone
+                        ld a, h
+                        or l
+                        jp z, RequestNoZone
                         ldir
-                        ld hl, (ZoneLen)                ; Calculate request len (inc checksum)
+RequestNoZone:          ld hl, (ZoneLen)                ; Calculate request len (inc checksum)
                         AddHL(3)
                         ld (RequestLen), hl
                         dec hl
