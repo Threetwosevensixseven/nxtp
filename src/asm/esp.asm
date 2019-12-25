@@ -175,6 +175,9 @@ HandleError:
 Stop:                     Border(2)
                           jr Stop
                         else
+                          push hl
+                          call PrintRst16Error
+                          pop hl
                           jp Return.WithCustomError     ; Straight to the error handing exit routine
                         endif
 Rollover:
