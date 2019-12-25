@@ -9,6 +9,10 @@ You can tell *nxtp* to [set the local time in your own timezone](https://github.
 
 We also provide a C# reference client using .NET Core 3.0, to assist with porting to other architectures or machines.
 
+If you haven't already done so, set up your Next WiFi using `WIFI.BAS` as described in [this wiki article](https://github.com/Threetwosevensixseven/nxtp/wiki/Setting-Up-Your-Next-WiFi).
+
+To sync date and time every time you boot your Next, set up `AUTOEXEC.BAS` as described in [this wiki article](https://github.com/Threetwosevensixseven/nxtp/wiki/Syncing-Date-and-Time-From-AUTOEXEC.BAS).
+
 ## *nxtp* Server
 
 The server is written in C# using .NET Core 3.0, and can be hosted on any Windows, Mac or linux computer. You may use the public server hosted by the Next team, or run your own private copy of the server on your PC. You may also run the server on a Raspberry Pi running Raspbian. It is lightweight enough to run on a wifi-equipped Raspberry Pi Zero W.
