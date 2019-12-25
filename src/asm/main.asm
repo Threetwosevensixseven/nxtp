@@ -6,11 +6,13 @@ optionsize 5
 CSpect optionbool 15, -15, "CSpect", false              ; Option in Zeus GUI to launch CSpect
 RealESP optionbool 80, -15, "Real ESP", true            ; Launch CSpect with physical ESP in USB adaptor
 UploadNext optionbool 160, -15, "Next", false           ; Copy dot command to Next FlashAir card
+ErrDebug optionbool 212, -15, "Debug", true             ; Print errors onscreen and halt instead of returning to BASIC
 
-org $2000                                               ; Dot commands always start at $2000
-Start:                  jp Main                         ; Entry point, jump to start of code
-                        //include "vars.asm"              ; Keep global vars fixed here for easy debugging
-
+org $2000                                               ; Dot commands always start at $2000.
+Start:                  jp Main                         ; Entry point, jump to start of code.
+                                                        ; This will be overwrtten when we load .date and .time.
+                                                        ; Between $2000 and $2800, reserve 2KB of space to accommodate
+org $2800                                               ; Loading .date and .time at $2000 co-resident with .nxtp.
 Main                    proc
                         di
                         ld (Return.Stack1), sp          ; Save stack so we can always return without needing
@@ -119,7 +121,7 @@ Connect:
                         ErrorIfCarry(Errors.ESPConn)    ; Raise ESP error if no connection
                         call ESPReceiveWaitOK
                         ErrorIfCarry(Errors.ESPConn)    ; Raise ESP error if no response
-                        PrintMsg(Messages.Connected)
+                        //PrintMsg(Messages.Connected)
 PrintAnyZone:
                         ld a, (ZoneStart)
                         or a
@@ -160,10 +162,10 @@ ChecksumLoop:           xor (hl)                        ; Calculate checksum
 CalcPacketLength:
                         ld hl, (RequestLen)
                         call ConvertWordToAsc
-PrintCIPSend:
+/*PrintCIPSend:
                         PrintMsg(Messages.Sending1)     ; This has to happen before MakeCIPSend
                         PrintBuffer(WordStart, WordLen) ; Because they both use MsgBuffer
-                        PrintMsg(Messages.Sending2)
+                        PrintMsg(Messages.Sending2)*/
 MakeCIPSend:
                         ld de, MsgBuffer
                         WriteString(Commands.CIPSEND, Commands.CIPSENDLen)
@@ -254,24 +256,56 @@ ValidateTime:
                         inc hl
                         call ReadAndCheckDigit          ; Read Secs digit 2
                         ErrorIfCarry(Errors.BadResp)    ; Raise invalid response error if not Secs digit 2
-PrintDateTime:
-                        PrintMsg(Messages.Received)
-                        ld hl, (ResponseStart)
-                        ld bc, 3
+SaveDateTime:
+                        ld hl, (ResponseStart)          ; Copy date into a buffer suitable for .date command,
+                        ld bc, 3                        ; with enclosing quotes and terminating zero.
                         add hl, bc
+                        ld de, DateBufferInt
+                        ld bc, ProtoDateLen
+                        ldir
+                        ld hl, (ResponseStart)          ; Copy date into a buffer suitable for .date command,
+                        ld bc, 13                       ; with enclosing quotes and terminating zero.
+                        add hl, bc
+                        ld de, TimeBufferInt
+                        ld bc, ProtoTimeLen
+                        ldir
+/*PrintDateTime:
+                        PrintMsg(Messages.Received)
+                        ld hl, DateBufferInt
                         ld bc, ProtoDateLen
                         call PrintBufferLen
                         ld a, ' '
                         rst 16
-                        ld hl, (ResponseStart)
-                        ld bc, 13
-                        add hl, bc
+                        ld hl, TimeBufferInt
                         ld bc, ProtoTimeLen
                         call PrintBufferLen
                         ld a, CR
-                        rst 16
+                        rst 16  */
+CallDotDate:
+                        call esxDOS.GetSetDrive
+                        ld hl, Files.Date               ; HL not IX because we are in a dot command
+                        call esxDOS.fOpen               ; Open .date file
+                        ErrorIfCarry(Errors.DateNFF)    ; Raise missing .date error if not loaded
+                        ld hl, $2000                    ; Read .date command file into $2000
+                        ld bc, $800                     ; Maximum 2KB (it should be considerably smaller than 2KB)
+                        call  esxDOS.fRead
+                        ErrorIfCarry(Errors.DateNFF)    ; Raise missing .date error if not loaded
+                        ld hl, DateBuffer               ; Simulates the args passed into a dot command by NextZXOS
+                        call $2000                      ; Call dot command entry point
+CallDotTime:
+                        ld hl, Files.Time               ; HL not IX because we are in a dot command
+                        call esxDOS.fOpen               ; Open .time file
+                        ErrorIfCarry(Errors.TimeNFF)    ; Raise missing .date error if not loaded
+                        ld hl, $2000                    ; Read .time command file into $2000
+                        ld bc, $800                     ; Maximum 2KB (it should be considerably smaller than 2KB)
+                        call  esxDOS.fRead
+                        ErrorIfCarry(Errors.TimeNFF)    ; Raise missing .time error if not loaded
+                        ld hl, TimeBuffer               ; Simulates the args passed into a dot command by NextZXOS
+                        call $2000                      ; Call dot command entry point
 
-Freeze:                 ei:Freeze(1, 4)
+                        ; .date and .time don't throw any error messages or return to BASIC, so there is nothing to
+                        ; to handle after they return. We can assume they printed info about success or failure for
+                        ; the user, so if we got to this point we can return to the next BASIC line or the OK prompt.
 
                         jp Return.ToBasic
 NoZone:
@@ -313,6 +347,7 @@ pend
                         include "macros.asm"            ; Zeus macros
                         include "parse.asm"             ; String and arg parsing routines
                         include "esp.asm"               ; ESP routines
+                        include "esxDOS.asm"            ; ESXDOS routines
                         include "msg.asm"               ; Messaging and error routines
                         include "vars.asm"              ; GLobal variables
 

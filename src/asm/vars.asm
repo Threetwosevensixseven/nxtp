@@ -18,4 +18,8 @@ Buffer:                 ds 256
 BufferLen               equ $-Buffer
 MsgBuffer:              ds 256
 MsgBufferLen            equ $-MsgBuffer
+DateBuffer              db "\"00/00/0000\"", 0
+DateBufferInt           equ DateBuffer+1
+TimeBuffer              db "\"00:00:00\"", 0
+TimeBufferInt           equ TimeBuffer+1
 

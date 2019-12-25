@@ -22,6 +22,8 @@ Errors                  proc
   ESPTimeout:           db "WiFi or server timeou", 't'|128, 0
   Break:                db "D BREAK - CONT repeat", 's'|128, 0
   BadResp:              db "Invalid server respons", 'e'|128, 0
+  DateNFF:              db "Missing .date dot comman", 'd'|128, 0
+  TimeNFF:              db "Missing .time dot comman", 'd'|128, 0
 pend
 
 Commands                proc
@@ -33,6 +35,11 @@ Commands                proc
                         TerminateLen equ $-Terminate
   CIPSEND:              db "AT+CIPSEND="
                         CIPSENDLen equ $-CIPSEND
+pend
+
+Files                   proc
+  Date:                 db "/dot/date", 0
+  Time:                 db "/dot/time", 0
 pend
 
 PrintRst16              proc

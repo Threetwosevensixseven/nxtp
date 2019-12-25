@@ -124,3 +124,17 @@ DecodeDecimal           macro(Buffer, DigitCount)
                         call DecodeDecimalProc
 mend
 
+Rst8                    macro(Command)
+                        rst $08
+                        noflow
+                        db Command
+mend
+
+CopyLDIR                macro(SourceAddr, DestAddr, Size)
+                        ld hl, SourceAddr
+                        ld de, DestAddr
+                        ld bc, Size
+                        ldir
+mend
+
+

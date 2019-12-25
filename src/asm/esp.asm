@@ -148,8 +148,10 @@ pend
 
 InitESPTimeout          proc
                         push hl
-                        ld hl, ESPTimeout
+                        ld hl, ESPTimeout mod 65536     ; Timeout is a 32-bit value, so save the two LSBs first,
                         ld (CheckESPTimeout.Value), hl
+                        ld hl, ESPTimeout / 65536       ; then the two MSBs.
+                        ld (CheckESPTimeout.Value2), hl
                         pop hl
                         ret
 pend
@@ -162,19 +164,29 @@ Value equ $+1:          ld hl, SMC
                         ld (Value), hl
                         ld a, h
                         or l
-                        jp z, Failure
+                        jr z, Rollover
 Success:                pop af
                         pop hl
                         ret
 Failure:                ld hl, Errors.ESPTimeout        ; Ignore current stack depth, and just jump
 HandleError:
-                        if enabled ErrorDebugging
+                        if enabled ErrDebug
                           call PrintRst16Error
 Stop:                     Border(2)
                           jr Stop
                         else
                           jp Return.WithCustomError     ; Straight to the error handing exit routine
                         endif
+Rollover:
+Value2 equ $+1:         ld hl, SMC                      ; Check the two upper values
+                        ld a, h
+                        or l
+                        jr z, Failure                   ; If we hit here, 32 bit value is $00000000
+                        dec hl
+                        ld (Value2), hl
+                        ld hl, ESPTimeout mod 65536
+                        ld (Value), hl
+                        jr Success
 pend
 
 CheckESPTimeout2        proc
@@ -185,7 +197,7 @@ Value equ $+1:          ld hl, SMC
                         ld (Value), hl
                         ld a, h
                         or l
-                        jp z, Failure
+                        jp z, Rollover
 Success:
                         pop af
                         pop hl
@@ -196,10 +208,22 @@ Failure:
                         pop hl
                         scf
                         ret
+Rollover:
+Value2 equ $+1:         ld hl, SMC                      ; Check the two upper values
+                        ld a, h
+                        or l
+                        jr z, Failure                   ; If we hit here, 32 bit value is $00000000
+                        dec hl
+                        ld (Value2), hl
+                        ld hl, ESPTimeout mod 65536
+                        ld (Value), hl
+                        jr Success
 pend
 
 ESPReceiveBuffer        proc
-                        ld hl, ESPTimeout2
+                        ld hl, ESPTimeout2 mod 65536
+                        ld (CheckESPTimeout2.Value), hl
+                        ld hl, ESPTimeout2 / 65536
                         ld (CheckESPTimeout2.Value), hl
                         ld hl, Buffer
                         ld de, BufferLen
