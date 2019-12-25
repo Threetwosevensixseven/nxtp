@@ -2,7 +2,7 @@
   "profiles": {
     "NxtpClient": {
       "commandName": "Project",
-      "commandLineArgs": "localhost:12300 -z=GTBStandardTime -xz=EasternStandardTime -i"
+      "commandLineArgs": "localhost:12300 -i"
     }
   }
 }

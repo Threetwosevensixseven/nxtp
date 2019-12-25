@@ -34,16 +34,23 @@ namespace NxtpClient
                 if (Port <= 0 || Port > 65535)
                     return Usage();
                 var zArgs = args.Where(a => a.StartsWith("-z=")).ToList();
-                if (zArgs.Count != 1)
+                if (zArgs.Count > 1)
                     return Usage();
-                if (zArgs[0].Length <= 3)
+                if (zArgs.Count > 0 && zArgs[0].Length <= 3)
                     return Usage();
-                Zone = (zArgs[0] ?? "").Substring(3).Trim();
-                if (string.IsNullOrWhiteSpace(Zone))
-                    return Usage();
+                Zone = "";
+                if (zArgs.Count > 0)
+                {
+                    Zone = (zArgs[0] ?? "").Substring(3).Trim();
+                    if (string.IsNullOrWhiteSpace(Zone))
+                        return Usage();
+                }
 
                 var req = new NxtpRequestV1(Zone);
-                Console.WriteLine("Requesting time for timezone \"" + Zone + "\"...");
+                if (string.IsNullOrWhiteSpace(Zone))
+                    Console.WriteLine("Requesting time for default timezone (GMT)...");
+                else
+                    Console.WriteLine("Requesting time for timezone \"" + Zone + "\"...");
 
                 Console.WriteLine("Connecting to server " + ServerAddress + " on port " + Port + "...");
                 using (var client = new TcpClient(ServerAddress, Port))
@@ -60,8 +67,8 @@ namespace NxtpClient
                         if (resp == null)
                             Console.WriteLine("Result could not be processed");
                         else
-                            Console.WriteLine("Result: {0} {1} ({2})", 
-                                resp.DateFormatted, resp.TimeFormatted, resp.Result.ToString("s"));
+                            Console.WriteLine("Result: {0} {1} ({2})",
+                              resp.DateFormatted, resp.TimeFormatted, resp.Result.ToString("s"));
                     }
                     Console.WriteLine("Closing connection");
                 }
