@@ -22,7 +22,7 @@ The server is written in C# using .NET Core 3.0, and can be hosted on any Window
 The *nxtp* protocol is documented [here](https://github.com/Threetwosevensixseven/nxtp/wiki/NXTP-Protocol).
 
 ## Project Status
-*nxtp* is currently in beta testing. Download the latest Next client [here](). 
+*nxtp* is currently in beta testing. Download the latest Next client [here](https://github.com/Threetwosevensixseven/nxtp/releases/latest). 
 
 If you have a GitHub account you can elect to be notified whenever there is a project release.
 
