@@ -17,8 +17,14 @@ To sync date and time every time you boot your Next, set up `AUTOEXEC.BAS` as de
 
 The server is written in C# using .NET Core 3.0, and can be hosted on any Windows, Mac or linux computer. You may use the public server hosted by the Next team, or run your own private copy of the server on your PC. You may also run the server on a Raspberry Pi running Raspbian. It is lightweight enough to run on a wifi-equipped Raspberry Pi Zero W.
 
+## Protocol
+
+The *nxtp* protocol is documented [here](https://github.com/Threetwosevensixseven/nxtp/wiki/NXTP-Protocol).
+
 ## Project Status
-*nxtp* is currently in alpha testing. Please check back soon for details of how to use *nxtp* on your Next. If you have a GitHub account you can elect to be notified whenever there is a project release.
+*nxtp* is currently in beta testing. Download the latest Next client [here](). 
+
+If you have a GitHub account you can elect to be notified whenever there is a project release.
 
 ## Copyright and Licence
 *nxtp* is © 2019 Robin Verhagen-Guest, and licensed under [Apache 2.0](LICENSE). 
