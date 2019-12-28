@@ -2,6 +2,7 @@
 using NxtpData.Request;
 using NxtpData.Response;
 using System;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -68,7 +69,20 @@ namespace NxtpClient
                     Console.WriteLine("Request: {0}", req.ToHex());
                     using (var stream = client.GetStream())
                     {
+                        // TESTING: Tests connection or receive timeout on the server
+                        //Console.WriteLine("DEBUG: Pausing after connect, press any key...");
+                        //Console.ReadKey();
+
+                        // TESTING: Tests malformed packet on the server
+                        //data[0] = 255;
+                        //stream.Write(data, 0, 1);
+
                         stream.Write(data, 0, data.Length);
+
+                        // TESTING: Tests send timeout on the server
+                        //Console.WriteLine("DEBUG: Pausing after send, press any key...");
+                        //Console.ReadKey();
+
                         data = new Byte[1024];
                         int read = stream.Read(data, 0, data.Length);
                         Console.WriteLine("Response: {0}", ToHex(data, read));
