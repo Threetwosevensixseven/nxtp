@@ -56,7 +56,17 @@ namespace NxtpServer.Classes
                             Console.WriteLine("Request: " + ToHex(buffer, read));
 
                             byte version = buffer[0];
-                            Console.WriteLine("Trying protocol version " + version + "...");
+                            bool testMode = false;
+                            if (buffer != null && buffer.Length >= 4 && read == 4)
+                            {
+                                var text = (Encoding.ASCII.GetString(buffer, 0, 4) ?? "").Trim().ToUpper();
+                                testMode = text == "TEST";
+                            }
+
+                            if (testMode)
+                                Console.WriteLine("Trying protocol version 1 (TEST mode)...");
+                            else
+                                Console.WriteLine("Trying protocol version " + version + "...");
                             var req = NxtpRequestFactory.Create(version, buffer, read);
                             if (req == null)
                             {

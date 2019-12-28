@@ -27,7 +27,13 @@ namespace NxtpData.Request
                 }
                 try
                 {
-                    if (creator != null && creator.Version == Version)
+                    bool testMode = false;
+                    if (creator != null && Data != null && DataSize == 4)
+                    {
+                        var text = (Encoding.ASCII.GetString(Data, 0, 4) ?? "").Trim().ToUpper();
+                        testMode = text == "TEST";
+                    }
+                    if (creator != null && (testMode || creator.Version == Version))
                         request = creator.Deserialize(Data, DataSize);
                 }
                 catch

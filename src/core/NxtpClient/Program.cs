@@ -16,6 +16,7 @@ namespace NxtpClient
         public static bool Interactive;
         public static bool Help;
         public static string Zone;
+        public static bool TestMode;
 
         private static int Main(string[] args)
         {
@@ -23,6 +24,7 @@ namespace NxtpClient
             {
                 Interactive = args.Any(a => a == "-i");
                 Help = args.Any(a => a == "-h");
+                TestMode = args.Any(a => (a ?? "").Trim().ToUpper() == "TEST");
                 if (Help)
                     return Usage();
                 var address = (args.Length > 0 ? args[0] : "").Split(':', 2);
@@ -46,8 +48,15 @@ namespace NxtpClient
                         return Usage();
                 }
 
-                var req = new NxtpRequestV1(Zone);
-                if (string.IsNullOrWhiteSpace(Zone))
+                NxtpRequestV1 req;
+                if (TestMode)
+                    req = new NxtpRequestV1("TEST");
+                else
+                    req = new NxtpRequestV1(Zone);
+
+                if (TestMode)
+                    Console.WriteLine("Requesting time in TEST mode (GMT)...");
+                else if (string.IsNullOrWhiteSpace(Zone))
                     Console.WriteLine("Requesting time for default timezone (GMT)...");
                 else
                     Console.WriteLine("Requesting time for timezone \"" + Zone + "\"...");
@@ -55,6 +64,9 @@ namespace NxtpClient
                 Console.WriteLine("Connecting to server " + ServerAddress + " on port " + Port + "...");
                 using (var client = new TcpClient(ServerAddress, Port))
                 {
+                    Console.WriteLine("TESTING, press any key...");
+                    Console.ReadKey();
+
                     Byte[] data = req.Serialize();
                     Console.WriteLine("Request: {0}", req.ToHex());
                     using (var stream = client.GetStream())
