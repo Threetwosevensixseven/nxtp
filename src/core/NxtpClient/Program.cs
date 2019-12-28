@@ -64,9 +64,6 @@ namespace NxtpClient
                 Console.WriteLine("Connecting to server " + ServerAddress + " on port " + Port + "...");
                 using (var client = new TcpClient(ServerAddress, Port))
                 {
-                    Console.WriteLine("TESTING, press any key...");
-                    Console.ReadKey();
-
                     Byte[] data = req.Serialize();
                     Console.WriteLine("Request: {0}", req.ToHex());
                     using (var stream = client.GetStream())
