@@ -276,7 +276,7 @@ SaveDateTime:
                         ld de, TimeBufferInt
                         ld bc, ProtoTimeLen
                         ldir
-/*PrintDateTime:
+PrintDateTime:
                         PrintMsg(Messages.Received)
                         ld hl, DateBufferInt
                         ld bc, ProtoDateLen
@@ -287,8 +287,9 @@ SaveDateTime:
                         ld bc, ProtoTimeLen
                         call PrintBufferLen
                         ld a, CR
-                        rst 16  */
+                        rst 16
 CallDotDate:
+                        PrintMsg(Messages.Setting)
                         call esxDOS.GetSetDrive
                         ld hl, Files.Date               ; HL not IX because we are in a dot command
                         call esxDOS.fOpen               ; Open .date file

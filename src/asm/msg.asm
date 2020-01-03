@@ -11,6 +11,7 @@ Messages                proc
   Sending1:             db "Sending ", 0
   Sending2:             db " chars...", CR, 0
   Received:             db "Received ", 0
+  Setting:              db "Setting date and time...", CR, 0
 pend
 
 Errors                  proc
