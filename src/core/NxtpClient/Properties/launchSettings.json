@@ -2,7 +2,7 @@
   "profiles": {
     "NxtpClient": {
       "commandName": "Project",
-      "commandLineArgs": "localhost:12300 -i tEsT "
+      "commandLineArgs": "localhost:12300 -i -z=PhoebusTime"
     }
   }
 }

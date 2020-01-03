@@ -120,7 +120,16 @@ namespace NxtpData.Request
             if (string.IsNullOrWhiteSpace(zone))
                 return rv;
             TimeZoneInfo zoneMatched = null;
-            foreach (var tz in TimeZoneInfo.GetSystemTimeZones())
+            var zones = TimeZoneInfo.GetSystemTimeZones();
+            if (zone == "phoebustime")
+            {
+                var rnd = new Random();
+                int i = rnd.Next(0, zones.Count);
+                this.TimeZoneCode = zone;
+                this.ZoneInfo = zones[i];
+                return this;
+            }
+            foreach (var tz in zones)
             {
                 if (zone == tz.Id.Replace(" ", "").ToLower())
                 {
