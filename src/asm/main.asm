@@ -357,7 +357,7 @@ pend
                         include "esp.asm"               ; ESP routines
                         include "esxDOS.asm"            ; ESXDOS routines
                         include "msg.asm"               ; Messaging and error routines
-                        include "vars.asm"              ; GLobal variables
+                        include "vars.asm"              ; Global variables
 
 Length equ $-Start
 zeusprinthex "Command size: ", Length
