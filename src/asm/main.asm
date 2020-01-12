@@ -348,8 +348,8 @@ WithCustomError:
 CPU2 equ $+3:           nextreg Reg.CPUSpeed, SMC       ; Restore original CPU speed
                         xor a
                         scf                             ; Signal error, hl = custom error message
-                        jp Stack
-pend
+                        jp Stack                        ; (NextZXOS is not currently displaying standard error messages,
+pend                                                    ;  with a>0 and carry cleared, so we use a custom message.)
 
                         include "constants.asm"         ; Global constants
                         include "macros.asm"            ; Zeus macros
