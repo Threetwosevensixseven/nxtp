@@ -86,7 +86,9 @@ SubsequentChar:         cp (hl)
                         ld (StateJump), hl
 Print:                  call CheckESPTimeout
 Compare equ $+1:        ld de, SMC
+                        push hl
                         CpHL(de)
+                        pop hl
                         jp nz, NotReady
                         ld a, (State)
                         cp 0

@@ -45,8 +45,6 @@ CpHL                    macro(Register)
                         add hl, Register
 mend
 
-
-
 PrintMsg                macro(Address)
                         ld hl, Address
                         call PrintRst16

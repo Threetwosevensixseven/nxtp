@@ -20,7 +20,7 @@ Main                    proc
 
                         call InstallErrorHandler        ; Handle esxDOS and scroll errors
 
-                        ld a, %0000 0001                ; Test for Next courtesy of Simon N Goodwin, thanks :)
+                        ld a, %0000 0001                ; Test for Next courtesy of Simon N Goodwin , thanks :)
                         MirrorA()                       ; Z80N-only opcode. If standard Z80 or successors, this
                         nop                             ; will be executed as benign opcodes that don't affect A.
                         nop
@@ -38,7 +38,7 @@ SetSpeed:
                         and %11                         ; Mask out everything but the current desired speed
                         ld (Return.CPU1), a             ; Save current speed so it
                         ld (Return.CPU2), a             ; can be restored on exit
-                        nextreg Reg.CPUSpeed, %11       ; Set current desired speed to 14MHz
+                        nextreg Reg.CPUSpeed, %11       ; Set current desired speed to 28MHz
 
                         //scf
                         //ErrorIfCarry(Errors.ESPComms1)  ; Check longest error message
