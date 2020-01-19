@@ -1,6 +1,7 @@
 ; constants.asm
 
 ; Application
+CoreMinVersion          equ $3004                       ; 3.00.04 has 28MHz
 MaxHostSize             equ 60
 MaxPortSize             equ 5
 MaxZoneSize             equ 32
@@ -35,6 +36,8 @@ pend
 Reg                     proc
   MachineID             equ $00
   CPUSpeed              equ $07
+  CoreMSB               equ $01
+  CoreLSB               equ $0E
 pend
 
 ; Chars

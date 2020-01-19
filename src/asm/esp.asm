@@ -1,5 +1,16 @@
 ; esp.asm
 
+Cmd                     proc
+  CIPSTART1:            db "AT+CIPSTART=\"TCP\",\""
+                        CIPSTART1Len equ $-CIPSTART1
+  CIPSTART2:            db "\","
+                        CIPSTART2Len equ $-CIPSTART2
+  Terminate:            db CR, LF, 0
+                        TerminateLen equ $-Terminate
+  CIPSEND:              db "AT+CIPSEND="
+                        CIPSENDLen equ $-CIPSEND
+pend
+
 ESPSend                 macro(Text)                     ; 1 <= length(Text) <= 253
                         ld hl, Address                  ; Start of the text to send
                         ld e, length(Text)+2            ; Length of the text to send, including terminating CRLF
@@ -170,7 +181,7 @@ Value equ $+1:          ld hl, SMC
 Success:                pop af
                         pop hl
                         ret
-Failure:                ld hl, Errors.ESPTimeout        ; Ignore current stack depth, and just jump
+Failure:                ld hl, Err.ESPTimeout           ; Ignore current stack depth, and just jump
 HandleError:
                         if enabled ErrDebug
                           call PrintRst16Error

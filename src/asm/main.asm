@@ -25,7 +25,7 @@ Main                    proc
                         nop                             ; will be executed as benign opcodes that don't affect A.
                         nop
                         cp %1000 0000                   ; Test that A was mirrored as expected
-                        ld hl, Errors.NotNext           ; Error message to display
+                        ld hl, Err.NotNext              ; Error message to display
                         jp nz, Return.WithCustomError   ; Exit with error if not a Next
 
                         NextRegRead(Reg.MachineID)      ; If we passed that test we are safe to read machine ID.
@@ -40,8 +40,13 @@ SetSpeed:
                         ld (Return.CPU2), a             ; can be restored on exit
                         nextreg Reg.CPUSpeed, %11       ; Set current desired speed to 28MHz
 
-                        //scf
-                        //ErrorIfCarry(Errors.ESPComms1)  ; Check longest error message
+                        NextRegRead(Reg.CoreMSB)        ; Core Major/Minor version
+                        ld h, a
+                        NextRegRead(Reg.CoreLSB)        ; Core Sub version
+                        ld l, a                         ; HL = version, should be >= $3004
+                        ld de, CoreMinVersion
+                        CpHL(de)
+                        ErrorIfCarry(Err.CoreMin)       ; Raise ESP error if no response
 
 SavedArgs equ $+1:      ld hl, SMC                      ; Restore args
                         ld a, h                         ; Check args length
@@ -62,7 +67,7 @@ ParseHost:
                         jp c, PrintHelp                 ; Print help if hostname not found
                         ld hl, MaxHostSize
                         CpHL(bc)
-                        ErrorIfCarry(Errors.HostLen)    ; Error if hostname is larger than buffer
+                        ErrorIfCarry(Err.HostLen)       ; Error if hostname is larger than buffer
 ParsePort:
                         ld hl, (HostStart)
                         add hl, bc
@@ -95,35 +100,35 @@ ParseZone:
                         jp c, NoZone                    ; Skip if no zone
                         ld hl, MaxZoneSize
                         CpHL(bc)
-                        ErrorIfCarry(Errors.ZoneLen)    ; Error if zone is larger than buffer
+                        ErrorIfCarry(Err.ZoneLen)       ; Error if zone is larger than buffer
 MakeCIPStart:
                         ld de, Buffer
-                        WriteString(Commands.CIPSTART1, Commands.CIPSTART1Len)
+                        WriteString(Cmd.CIPSTART1, Cmd.CIPSTART1Len)
                         WriteBuffer(HostStart, HostLen)
-                        WriteString(Commands.CIPSTART2, Commands.CIPSTART2Len)
+                        WriteString(Cmd.CIPSTART2, Cmd.CIPSTART2Len)
                         WriteBuffer(PortStart, PortLen)
-                        WriteString(Commands.Terminate, Commands.TerminateLen)
+                        WriteString(Cmd.Terminate, Cmd.TerminateLen)
 InitialiseESP:
                         PrintMsg(Messages.InitESP)
                         ESPSend("ATE0")
-                        ErrorIfCarry(Errors.ESPComms1)  ; Raise ESP error if no response
+                        ErrorIfCarry(Err.ESPComms1)     ; Raise ESP error if no response
                         call ESPReceiveWaitOK
-                        ErrorIfCarry(Errors.ESPComms2)  ; Raise ESP error if no response
+                        ErrorIfCarry(Err.ESPComms2)     ; Raise ESP error if no response
                         ESPSend("AT+CIPCLOSE")          ; Don't raise error on CIPCLOSE
                         call ESPReceiveWaitOK           ; Because it might not be open
-                        //ErrorIfCarry(Errors.ESPComms) ; We never normally want to raise an error after CLOSE
+                        //ErrorIfCarry(Err.ESPComms)    ; We never normally want to raise an error after CLOSE
                         ESPSend("AT+CIPMUX=0")
-                        ErrorIfCarry(Errors.ESPComms3)  ; Raise ESP error if no response
+                        ErrorIfCarry(Err.ESPComms3)     ; Raise ESP error if no response
                         call ESPReceiveWaitOK
-                        ErrorIfCarry(Errors.ESPComms4)  ; Raise ESP error if no response
+                        ErrorIfCarry(Err.ESPComms4)     ; Raise ESP error if no response
 Connect:
                         PrintMsg(Messages.Connect1)
                         PrintBuffer(HostStart, HostLen)
                         PrintMsg(Messages.Connect2)
                         ESPSendBuffer(Buffer)           ; This is AT+CIPSTART="TCP","<server>",<port>\r\n
-                        ErrorIfCarry(Errors.ESPConn1)   ; Raise ESP error if no connection
+                        ErrorIfCarry(Err.ESPConn1)      ; Raise ESP error if no connection
                         call ESPReceiveWaitOK
-                        ErrorIfCarry(Errors.ESPConn2)   ; Raise ESP error if no response
+                        ErrorIfCarry(Err.ESPConn2)      ; Raise ESP error if no response
                         //PrintMsg(Messages.Connected)
 PrintAnyZone:
                         ld hl, (ZoneStart)
@@ -175,94 +180,94 @@ CalcPacketLength:
                         PrintMsg(Messages.Sending2)*/
 MakeCIPSend:
                         ld de, MsgBuffer
-                        WriteString(Commands.CIPSEND, Commands.CIPSENDLen)
+                        WriteString(Cmd.CIPSEND, Cmd.CIPSENDLen)
                         WriteBuffer(WordStart, WordLen)
-                        WriteString(Commands.Terminate, Commands.TerminateLen)
+                        WriteString(Cmd.Terminate, Cmd.TerminateLen)
 SendRequest:
                         ESPSendBuffer(MsgBuffer)
                         call ESPReceiveWaitOK
-                        ErrorIfCarry(Errors.ESPComms5)  ; Raise wifi error if no response
+                        ErrorIfCarry(Err.ESPComms5)     ; Raise wifi error if no response
                         call ESPReceiveWaitPrompt
-                        ErrorIfCarry(Errors.ESPComms6)  ; Raise wifi error if no prompt
+                        ErrorIfCarry(Err.ESPComms6)     ; Raise wifi error if no prompt
                         ESPSendBufferLen(Buffer, RequestLen)
-                        ErrorIfCarry(Errors.ESPConn3)   ; Raise connection error
+                        ErrorIfCarry(Err.ESPConn3)      ; Raise connection error
 ReceiveResponse:
                         call ESPReceiveBuffer
                         call ParseIPDPacket
-                        ErrorIfCarry(Errors.ESPConn4)   ; Raise connection error if no IPD packet
+                        ErrorIfCarry(Err.ESPConn4)      ; Raise connection error if no IPD packet
 ValidateResponse:
                         ld hl, (ResponseStart)          ; Start of response
                         ld a, (hl)                      ; Read protocol version
                         cp ProtoVersion
-                        ErrorIfNonZero(Errors.BadResp1) ; Raise invalid response error if wrong protocol version
+                        ErrorIfNonZero(Err.BadResp1)    ; Raise invalid response error if wrong protocol version
                         inc hl
                         ld a, (hl)                      ; Read date length
                         cp ProtoDateLen
-                        ErrorIfNonZero(Errors.BadResp2) ; Raise invalid response error if not length of nn/nn/nnnn
+                        ErrorIfNonZero(Err.BadResp2)    ; Raise invalid response error if not length of nn/nn/nnnn
                         inc hl
                         ld a, (hl)                      ; Read time length
                         cp ProtoTimeLen
-                        ErrorIfNonZero(Errors.BadResp3) ; Raise invalid response error if not length of nn:nn:nn
+                        ErrorIfNonZero(Err.BadResp3)    ; Raise invalid response error if not length of nn:nn:nn
 ValidateDate:
                         inc hl
                         call ReadAndCheckDigit          ; Read Date digit 1
-                        ErrorIfCarry(Errors.BadResp4)   ; Raise invalid response error if not Date digit 1
+                        ErrorIfCarry(Err.BadResp4)      ; Raise invalid response error if not Date digit 1
                         inc hl
                         call ReadAndCheckDigit          ; Read Date digit 2
-                        ErrorIfCarry(Errors.BadResp5)   ; Raise invalid response error if not Date digit 2
+                        ErrorIfCarry(Err.BadResp5)      ; Raise invalid response error if not Date digit 2
                         inc hl
                         ld a, (hl)                      ; Read /
                         cp '/'
-                        ErrorIfCarry(Errors.BadResp6)   ; Raise invalid response error if not /
+                        ErrorIfCarry(Err.BadResp6)      ; Raise invalid response error if not /
                         inc hl
                         call ReadAndCheckDigit          ; Read Month digit 1
-                        ErrorIfCarry(Errors.BadResp7)   ; Raise invalid response error if not Month digit 1
+                        ErrorIfCarry(Err.BadResp7)      ; Raise invalid response error if not Month digit 1
                         inc hl
                         call ReadAndCheckDigit          ; Read Month digit 2
-                        ErrorIfCarry(Errors.BadResp8)   ; Raise invalid response error if not Month digit 2
+                        ErrorIfCarry(Err.BadResp8)      ; Raise invalid response error if not Month digit 2
                         inc hl
                         ld a, (hl)                      ; Read /
                         cp '/'
-                        ErrorIfCarry(Errors.BadResp9)   ; Raise invalid response error if not /
+                        ErrorIfCarry(Err.BadResp9)      ; Raise invalid response error if not /
                         inc hl
                         call ReadAndCheckDigit          ; Read Year digit 1
-                        ErrorIfCarry(Errors.BadResp10)  ; Raise invalid response error if not Year digit 1
+                        ErrorIfCarry(Err.BadResp10)     ; Raise invalid response error if not Year digit 1
                         inc hl
                         call ReadAndCheckDigit          ; Read Year digit 2
-                        ErrorIfCarry(Errors.BadResp11)  ; Raise invalid response error if not Year digit 2
+                        ErrorIfCarry(Err.BadResp11)     ; Raise invalid response error if not Year digit 2
                         inc hl
                         call ReadAndCheckDigit          ; Read Year digit 3
-                        ErrorIfCarry(Errors.BadResp12)  ; Raise invalid response error if not Year digit 3
+                        ErrorIfCarry(Err.BadResp12)     ; Raise invalid response error if not Year digit 3
                         inc hl
                         call ReadAndCheckDigit          ; Read Year digit 4
-                        ErrorIfCarry(Errors.BadResp13)  ; Raise invalid response error if not Year digit 4
+                        ErrorIfCarry(Err.BadResp13)     ; Raise invalid response error if not Year digit 4
 ValidateTime:
                         inc hl
                         call ReadAndCheckDigit          ; Read Hours digit 1
-                        ErrorIfCarry(Errors.BadResp14)  ; Raise invalid response error if not Hours digit 1
+                        ErrorIfCarry(Err.BadResp14)     ; Raise invalid response error if not Hours digit 1
                         inc hl
                         call ReadAndCheckDigit          ; Read Hours digit 2
-                        ErrorIfCarry(Errors.BadResp15)  ; Raise invalid response error if not Hours digit 2
+                        ErrorIfCarry(Err.BadResp15)     ; Raise invalid response error if not Hours digit 2
                         inc hl
                         ld a, (hl)                      ; Read :
                         cp ':'
-                        ErrorIfCarry(Errors.BadResp16)  ; Raise invalid response error if not :
+                        ErrorIfCarry(Err.BadResp16)     ; Raise invalid response error if not :
                         inc hl
                         call ReadAndCheckDigit          ; Read Mins digit 1
-                        ErrorIfCarry(Errors.BadResp17)  ; Raise invalid response error if not Mins digit 1
+                        ErrorIfCarry(Err.BadResp17)     ; Raise invalid response error if not Mins digit 1
                         inc hl
                         call ReadAndCheckDigit          ; Read Mins digit 2
-                        ErrorIfCarry(Errors.BadResp18)  ; Raise invalid response error if not Mins digit 2
+                        ErrorIfCarry(Err.BadResp18)     ; Raise invalid response error if not Mins digit 2
                         inc hl
                         ld a, (hl)                      ; Read :
                         cp ':'
-                        ErrorIfCarry(Errors.BadResp19)  ; Raise invalid response error if not :
+                        ErrorIfCarry(Err.BadResp19)     ; Raise invalid response error if not :
                         inc hl
                         call ReadAndCheckDigit          ; Read Secs digit 1
-                        ErrorIfCarry(Errors.BadResp20)  ; Raise invalid response error if not Secs digit 1
+                        ErrorIfCarry(Err.BadResp20)     ; Raise invalid response error if not Secs digit 1
                         inc hl
                         call ReadAndCheckDigit          ; Read Secs digit 2
-                        ErrorIfCarry(Errors.BadResp21)  ; Raise invalid response error if not Secs digit 2
+                        ErrorIfCarry(Err.BadResp21)     ; Raise invalid response error if not Secs digit 2
 SaveDateTime:
                         ld hl, (ResponseStart)          ; Copy date into a buffer suitable for .date command,
                         ld bc, 3                        ; with enclosing quotes and terminating zero.
@@ -293,21 +298,21 @@ CallDotDate:
                         call esxDOS.GetSetDrive
                         ld hl, Files.Date               ; HL not IX because we are in a dot command
                         call esxDOS.fOpen               ; Open .date file
-                        ErrorIfCarry(Errors.DateNFF)    ; Raise missing .date error if not loaded
+                        ErrorIfCarry(Err.DateNFF)       ; Raise missing .date error if not loaded
                         ld hl, $2000                    ; Read .date command file into $2000
                         ld bc, $800                     ; Maximum 2KB (it should be considerably smaller than 2KB)
                         call  esxDOS.fRead
-                        ErrorIfCarry(Errors.DateNFF)    ; Raise missing .date error if not loaded
+                        ErrorIfCarry(Err.DateNFF)       ; Raise missing .date error if not loaded
                         ld hl, DateBuffer               ; Simulates the args passed into a dot command by NextZXOS
                         call $2000                      ; Call dot command entry point
 CallDotTime:
                         ld hl, Files.Time               ; HL not IX because we are in a dot command
                         call esxDOS.fOpen               ; Open .time file
-                        ErrorIfCarry(Errors.TimeNFF)    ; Raise missing .date error if not loaded
+                        ErrorIfCarry(Err.TimeNFF)       ; Raise missing .date error if not loaded
                         ld hl, $2000                    ; Read .time command file into $2000
                         ld bc, $800                     ; Maximum 2KB (it should be considerably smaller than 2KB)
                         call  esxDOS.fRead
-                        ErrorIfCarry(Errors.TimeNFF)    ; Raise missing .time error if not loaded
+                        ErrorIfCarry(Err.TimeNFF)       ; Raise missing .time error if not loaded
                         ld hl, TimeBuffer               ; Simulates the args passed into a dot command by NextZXOS
                         call $2000                      ; Call dot command entry point
 
@@ -332,7 +337,7 @@ InstallErrorHandler     proc
 pend
 
 ErrorHandler proc
-                        ld hl, Errors.Break
+                        ld hl, Err.Break
                         jp Return.WithCustomError
 pend
 

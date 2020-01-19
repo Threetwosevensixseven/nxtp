@@ -14,7 +14,7 @@ Messages                proc
   Setting:              db "Setting date and time...", CR, 0
 pend
 
-Errors                  proc
+Err                     proc
                         ;  "<-Longest valid erro>", 'r'|128
   HostLen:              db "1 HOSTNAME too lon",    'g'|128
   ESPComms1:            db "2 WiFi comms erro",     'r'|128
@@ -54,17 +54,7 @@ Errors                  proc
   BadResp19:            db "a Invalid respons",     'e'|128
   BadResp20:            db "b Invalid respons",     'e'|128
   BadResp21:            db "c Invalid respons",     'e'|128
-pend
-
-Commands                proc
-  CIPSTART1:            db "AT+CIPSTART=\"TCP\",\""
-                        CIPSTART1Len equ $-CIPSTART1
-  CIPSTART2:            db "\","
-                        CIPSTART2Len equ $-CIPSTART2
-  Terminate:            db CR, LF, 0
-                        TerminateLen equ $-Terminate
-  CIPSEND:              db "AT+CIPSEND="
-                        CIPSENDLen equ $-CIPSEND
+  CoreMin:              db "Core 3.00.04 require",  'd'|128
 pend
 
 Files                   proc
