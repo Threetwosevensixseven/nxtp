@@ -14,6 +14,7 @@ WordStart:              ds 5
 WordLen:                dw $0000
 ResponseStart:          dw $0000
 ResponseLen:            dw $0000
+Prescaler:              ds 3
 Buffer:                 ds 256
 BufferLen               equ $-Buffer
 MsgBuffer:              ds 256

@@ -11,6 +11,10 @@ Cmd                     proc
                         CIPSENDLen equ $-CIPSEND
 pend
 
+Baud                    proc Table:
+                        dw $8173, $8178, $817F, $8204, $820D, $8215, $821E, $816A
+pend
+
 ESPSend                 macro(Text)                     ; 1 <= length(Text) <= 253
                         ld hl, Address                  ; Start of the text to send
                         ld e, length(Text)+2            ; Length of the text to send, including terminating CRLF

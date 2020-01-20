@@ -2,6 +2,7 @@
 
 ; Application
 CoreMinVersion          equ $3004                       ; 3.00.04 has 28MHz
+TestVersion             equ "0004"                      ; Only used to make sure latest version is uploaded to board
 MaxHostSize             equ 60
 MaxPortSize             equ 5
 MaxZoneSize             equ 32
@@ -19,6 +20,7 @@ M_ERRH                  equ $95
 ; UART
 UART_RxD                equ $143B                       ; Also used to set the baudrate
 UART_TxD                equ $133B                       ; Also reads status
+UART_Sel                equ $153B                       ; Selects between ESP and Pi, and sets upper 3 bits of baud
 UART_SetBaud            equ UART_RxD                    ; Sets baudrate
 UART_GetStatus          equ UART_TxD                    ; Reads status bits
 UART_mRX_DATA_READY     equ %xxxxx 0 0 1                ; Status bit masks
@@ -35,9 +37,10 @@ pend
 ; Registers
 Reg                     proc
   MachineID             equ $00
-  CPUSpeed              equ $07
   CoreMSB               equ $01
+  CPUSpeed              equ $07
   CoreLSB               equ $0E
+  VideoTiming           equ $11
 pend
 
 ; Chars

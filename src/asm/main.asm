@@ -46,7 +46,7 @@ SetSpeed:
                         ld l, a                         ; HL = version, should be >= $3004
                         ld de, CoreMinVersion
                         CpHL(de)
-                        ErrorIfCarry(Err.CoreMin)       ; Raise ESP error if no response
+                        ErrorIfCarry(Err.CoreMin)       ; Raise minimum core error if < 3.00.04
 
 SavedArgs equ $+1:      ld hl, SMC                      ; Restore args
                         ld a, h                         ; Check args length
@@ -109,7 +109,45 @@ MakeCIPStart:
                         WriteBuffer(PortStart, PortLen)
                         WriteString(Cmd.Terminate, Cmd.TerminateLen)
 InitialiseESP:
-                        PrintMsg(Messages.InitESP)
+                        PrintMsg(Msg.InitESP)           ; "Initialising WiFi..."
+                        PrintMsg(Msg.SetBaud1)          ; "Using 115200 baud, "
+                        NextRegRead(Reg.VideoTiming)
+                        and %111
+                        push af
+                        ld d, a
+                        ld e, 5
+                        mul
+                        ex de, hl
+                        add hl, Timings.Table
+                        call PrintRst16                 ; "VGA0/../VGA6/HDMI"
+                        PrintMsg(Msg.SetBaud2)          ; " timings"
+                        pop af
+                        add a,a
+                        ld hl, Baud.Table
+                        add hl, a
+                        ld e, (hl)
+                        inc hl
+                        ld d, (hl)
+                        ex de, hl                       ; HL now contains the prescalar baud value
+                        ld (Prescaler), hl
+                        ld a, %x0x1 x000                ; Choose ESP UART, and set most significant bits
+                        ld (Prescaler+2), a             ; of the 17-bit prescalar baud to zero,
+                        ld bc, UART_Sel                 ; by writing to port 0x143B.
+                        out (c), a
+                        dec b                           ; Set baud by writing twice to port 0x143B
+                        out (c), l                      ; Doesn't matter which order they are written,
+                        out (c), h                      ; because bit 7 ensures that it is interpreted correctly.
+                        inc b                           ; Write to UART control port 0x153B
+
+                        ld a, (Prescaler+2)             ; Print three bytes written for debug purposes
+                        call PrintAHexNoSpace
+                        ld a, (Prescaler+1)
+                        call PrintAHexNoSpace
+                        ld a, (Prescaler)
+                        call PrintAHexNoSpace
+                        ld a, CR
+                        rst 16
+
                         ESPSend("ATE0")
                         ErrorIfCarry(Err.ESPComms1)     ; Raise ESP error if no response
                         call ESPReceiveWaitOK
@@ -122,24 +160,24 @@ InitialiseESP:
                         call ESPReceiveWaitOK
                         ErrorIfCarry(Err.ESPComms4)     ; Raise ESP error if no response
 Connect:
-                        PrintMsg(Messages.Connect1)
+                        PrintMsg(Msg.Connect1)
                         PrintBuffer(HostStart, HostLen)
-                        PrintMsg(Messages.Connect2)
+                        PrintMsg(Msg.Connect2)
                         ESPSendBuffer(Buffer)           ; This is AT+CIPSTART="TCP","<server>",<port>\r\n
                         ErrorIfCarry(Err.ESPConn1)      ; Raise ESP error if no connection
                         call ESPReceiveWaitOK
                         ErrorIfCarry(Err.ESPConn2)      ; Raise ESP error if no response
-                        //PrintMsg(Messages.Connected)
+                        //PrintMsg(Msg.Connected)
 PrintAnyZone:
                         ld hl, (ZoneStart)
                         ld a, h
                         or l
                         jp z, PrintNoZone
-PrintHasZone:           PrintMsg(Messages.UsingTZ)
+PrintHasZone:           PrintMsg(Msg.UsingTZ)
                         PrintBuffer(ZoneStart, ZoneLen)
-                        PrintMsg(Messages.Connect2)
+                        PrintMsg(Msg.Connect2)
                         jp AfterPrintZone
-PrintNoZone:            PrintMsg(Messages.UsingTZDef)
+PrintNoZone:            PrintMsg(Msg.UsingTZDef)
 AfterPrintZone:
 
 MakeRequest:
@@ -175,9 +213,9 @@ CalcPacketLength:
                         ld hl, (RequestLen)
                         call ConvertWordToAsc
 /*PrintCIPSend:
-                        PrintMsg(Messages.Sending1)     ; This has to happen before MakeCIPSend
+                        PrintMsg(Msg.Sending1)          ; This has to happen before MakeCIPSend
                         PrintBuffer(WordStart, WordLen) ; Because they both use MsgBuffer
-                        PrintMsg(Messages.Sending2)*/
+                        PrintMsg(Msg.Sending2)*/
 MakeCIPSend:
                         ld de, MsgBuffer
                         WriteString(Cmd.CIPSEND, Cmd.CIPSENDLen)
@@ -282,7 +320,7 @@ SaveDateTime:
                         ld bc, ProtoTimeLen
                         ldir
 PrintDateTime:
-                        PrintMsg(Messages.Received)
+                        PrintMsg(Msg.Received)
                         ld hl, DateBufferInt
                         ld bc, ProtoDateLen
                         call PrintBufferLen
@@ -294,7 +332,7 @@ PrintDateTime:
                         ld a, CR
                         rst 16
 CallDotDate:
-                        PrintMsg(Messages.Setting)
+                        PrintMsg(Msg.Setting)
                         call esxDOS.GetSetDrive
                         ld hl, Files.Date               ; HL not IX because we are in a dot command
                         call esxDOS.fOpen               ; Open .date file

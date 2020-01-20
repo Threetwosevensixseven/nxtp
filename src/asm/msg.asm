@@ -1,7 +1,8 @@
 ; msg.asm
 
-Messages                proc
+Msg                     proc
   InitESP:              db "Initialising WiFi...", CR, 0
+  //TestVer:              db "Test v", TestVersion, CR, 0
   InitDone:             db "Initialised", CR, 0
   Connect1:             db "Connecting to ", 0
   Connect2:             db "...", CR, 0
@@ -12,6 +13,8 @@ Messages                proc
   Sending2:             db " chars...", CR, 0
   Received:             db "Received ", 0
   Setting:              db "Setting date and time...", CR, 0
+  SetBaud1:             db "Using 115200 baud, ", 0
+  SetBaud2:             db " timings", CR, 0
 pend
 
 Err                     proc
@@ -62,6 +65,18 @@ Files                   proc
   Time:                 db "/dot/time", 0
 pend
 
+Timings:                proc Table:
+  ;   Text   Index  Notes
+  db "VGA0", 0 ; 0  Timing 0
+  db "VGA1", 0 ; 1  Timing 1
+  db "VGA2", 0 ; 2  Timing 2
+  db "VGA3", 0 ; 3  Timing 3
+  db "VGA4", 0 ; 4  Timing 4
+  db "VGA5", 0 ; 5  Timing 5
+  db "VGA6", 0 ; 6  Timing 6
+  db "HDMI", 0 ; 7  Timing 7
+pend
+
 PrintRst16              proc
                         ei
 Loop:                   ld a, (hl)
@@ -92,10 +107,10 @@ LastChar                and %0 1111111
 pend
 
 PrintHelp               proc
-                        ld hl, Msg
+                        ld hl, HelpMsg
                         call PrintRst16
                         jp Return.ToBasic
-Msg:                    db "NXTP", CR
+HelpMsg:                db "NXTP", CR
                         db "Set date/time from internet", CR, CR
                         db "nxtp", CR
                         db "Show help", CR, CR
@@ -139,6 +154,31 @@ PrintBufferLen          proc
                         ld a, b
                         or c
                         jr nz, PrintBufferLen
+                        ret
+pend
+
+PrintAHexNoSpace        proc
+                        //SafePrintStart()
+                        ld b, a
+                        //if DisableScroll
+                          //ld a, 24                      ; Set upper screen to not scroll
+                          //ld (SCR_CT), a                ; for another 24 rows of printing
+                          //ld a, b
+                        //endif
+                        and $F0
+                        swapnib
+                        call Print
+                        ld a, b
+                        and $0F
+                        call Print
+                        //SafePrintEnd()
+                        ret
+Print:                  cp 10
+                        ld c, '0'
+                        jr c, Add
+                        ld c, 'A'-10
+Add:                    add a, c
+                        rst 16
                         ret
 pend
 
