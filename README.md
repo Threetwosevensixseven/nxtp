@@ -27,7 +27,7 @@ The *nxtp* protocol is documented [here](https://github.com/Threetwosevensixseve
 If you have a GitHub account you can elect to be notified whenever there is a project release.
 
 ## Copyright and Licence
-*nxtp* is © 2019 Robin Verhagen-Guest, and licensed under [Apache 2.0](LICENSE). 
+*nxtp* is © 2019-2020 Robin Verhagen-Guest, and licensed under [Apache 2.0](LICENSE). 
 
 Everyone is encouraged to host a public *nxtp* server, or port the *nxtp* client to a different machine or architecture.
 
