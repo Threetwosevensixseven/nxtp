@@ -9,3 +9,7 @@
 /src/core/NxtpServer/Publish
 /src/asm/ZeusBak
 /dot/NXTP.piz
+/build/*.exe
+/build/*.ps1
+/build/keymap.dat
+/build/zeus.ini

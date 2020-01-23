@@ -1,0 +1,42 @@
+if (([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    Write-Output 'Running as administrator'
+} else {
+    Write-Output 'Running limited'
+}
+
+if (Test-Path 'hdfmonkey.exe') {
+    Write-Output "hdfmonkey.exe already exists, not downloading"
+} else {
+    Write-Output "Downloading hdfmonkey.exe..."
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    wget "https://github.com/Threetwosevensixseven/nxtp/raw/master/build/hdfmonkey.exe" -outfile "hdfmonkey.exe"
+    Write-Output "Downloaded hdfmonkey.exe"
+}
+
+if (Test-Path 'pskill.exe') {
+    Write-Output "pskill.exe already exists, not downloading"
+} else {
+    Write-Output "Downloading pskill.exe..."
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    wget "https://github.com/Threetwosevensixseven/nxtp/raw/master/build/pskill.exe" -outfile "pskill.exe"
+    Write-Output "Downloaded pskill.exe"
+}
+
+if (Test-Path 'ZXVersion.exe') {
+    Write-Output "ZXVersion.exe already exists, not downloading"
+} else {
+    Write-Output "Downloading ZXVersion.exe..."
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    wget "https://github.com/Threetwosevensixseven/nxtp/raw/master/build/ZXVersion.exe" -outfile "ZXVersion.exe"
+    Write-Output "Downloaded ZXVersion.exe"
+}
+
+if (Test-Path 'zeus.exe') {
+    Write-Output "zeus.exe already exists, not downloading"
+} else {
+    Write-Output "Downloading zeus.exe..."
+    wget "http://www.desdes.com/products/oldfiles/zeus.exe" -outfile "zeus.exe"
+    Write-Output "Downloaded zeus.exe"
+}
+
+#Pause

@@ -9,9 +9,11 @@ UploadNext optionbool 160, -15, "Next", false           ; Copy dot command to Ne
 ErrDebug optionbool 212, -15, "Debug", false            ; Print errors onscreen and halt instead of returning to BASIC
 
 org $2000                                               ; Dot commands always start at $2000.
-Start:                  jp Main                         ; Entry point, jump to start of code.
-                                                        ; This will be overwrtten when we load .date and .time.
-                                                        ; Between $2000 and $2800, reserve 2KB of space to accommodate
+Start:                  jr Begin                        ; Entry point, jump to start of code.
+                        db "NXTPv1."                    ; Put a signature and version in the file
+                        BuildNo()                       ; in case we ever need to detect it programmatically.
+                        db 0                            ; This will be overwritten when we load .date and .time.
+Begin:                  jp Main                         ; Between $2000 and $2800, reserve 2KB of space to accommodate
 org $2800                                               ; Loading .date and .time at $2000 co-resident with .nxtp.
 Main                    proc
                         di
@@ -139,14 +141,14 @@ InitialiseESP:
                         out (c), h                      ; because bit 7 ensures that it is interpreted correctly.
                         inc b                           ; Write to UART control port 0x153B
 
-                        ld a, (Prescaler+2)             ; Print three bytes written for debug purposes
+                        /*ld a, (Prescaler+2)             ; Print three bytes written for debug purposes
                         call PrintAHexNoSpace
                         ld a, (Prescaler+1)
                         call PrintAHexNoSpace
                         ld a, (Prescaler)
                         call PrintAHexNoSpace
                         ld a, CR
-                        rst 16
+                        rst 16*/
 
                         ESPSend("ATE0")
                         ErrorIfCarry(Err.ESPComms1)     ; Raise ESP error if no response
