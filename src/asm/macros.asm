@@ -135,3 +135,8 @@ CopyLDIR                macro(SourceAddr, DestAddr, Size)
                         ldir
 mend
 
+WaitFrames              macro(FrameCount)
+                        ld b, FrameCount
+                        call WaitFramesProc
+mend
+

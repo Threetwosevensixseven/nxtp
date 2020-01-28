@@ -1,6 +1,9 @@
 ; msg.asm
 
 Msg                     proc
+  Startup:              db "NXTP v1."
+                        BuildNo()
+                        db CR, Copyright, " 2019-2020 Robin Verhagen-Guest", CR, CR, 0
   InitESP:              db "Initialising WiFi...", CR, 0
   //TestVer:              db "Test v", TestVersion, CR, 0
   InitDone:             db "Initialised", CR, 0

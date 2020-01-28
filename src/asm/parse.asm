@@ -180,3 +180,11 @@ Err:                    scf
                         ret
 pend
 
+WaitFramesProc          proc
+                        ei
+Loop:                   halt
+                        djnz Loop
+                        di
+                        ret
+pend
+
