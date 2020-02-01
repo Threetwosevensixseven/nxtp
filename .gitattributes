@@ -1,3 +1,7 @@
+*.py  linguist-detectable=false
+*.bat linguist-detectable=false
+*.md  linguist-detectable=false
+
 *.*   			binary
 
 *.asm   		text
