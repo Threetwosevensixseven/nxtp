@@ -18,13 +18,13 @@ DO THIS ONCE:
 =============
 Browse to the "build" directory.
 Doubleclick on "get-tools.bat".
-Wait while four tools are downloaded. The last, "zeus.exe" is 1.4MB, so be patient.
+Wait while four tools are downloaded. The last, "zeustest.exe" is large, so be patient.
 When prompted "Press any key to continue", press a key.
 
 DO THIS EVERY TIME YOU WANT TO BUILD:
 =====================================
 Browse to the "build" directory.
-Doubleclick on "zeus.exe".
+Doubleclick on "zeustest.exe".
 Do File >> Open, then browse to the "src\asm" directory.
 Select "main.asm" and click the Open button.
 In Zeus, on the "Zeus (assembler)" tab, click the Assemble button.

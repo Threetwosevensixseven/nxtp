@@ -14,7 +14,8 @@
 ; See the License for the specific language governing permissions and
 ; limitations under the License.
                                                         ; Assembles with regular version of Zeus (not Next version),
-zeusemulate             "48K", "RAW", "NOROM"           ; because that makes it easier to assemble dot commands
+zeusemulate             "Next", "RAW", "NOROM"          ; because that makes it easier to assemble dot commandszxnextmap -1,DotCommand8KBank,-1,-1,-1,-1,-1,-1         ; Assemble into Next RAM bank but displace back down to $2000
+zxnextmap -1,DotBank1,-1,-1,-1,-1,-1,-1                 ; Assemble into Next RAM bank but displace back down to $2000
 zoSupportStringEscapes  = true;                         ; Download Zeus.exe from http://www.desdes.com/products/oldfiles/
 optionsize 5
 CSpect optionbool 15, -15, "CSpect", false              ; Option in Zeus GUI to launch CSpect
@@ -434,25 +435,23 @@ pend                                                    ;  with a>0 and carry cl
 Length equ $-Start
 zeusprinthex "Command size: ", Length
 
-if zeusver >= 74
-  zeuserror "Does not run on Zeus v4.00 (TEST ONLY) or above, Get v3.991 available at http://www.desdes.com/products/oldfiles/zeus.exe"
-endif
+zeusassert zeusver<=75, "Upgrade to Zeus v4.00 (TEST ONLY) or above, available at http://www.desdes.com/products/oldfiles/zeustest.exe"
 
 if (Length > $2000)
   zeuserror "DOT command is too large to assemble!"
 endif
 
-output_bin "..\\..\\dot\\NXTP", Start, Length
+output_bin "..\\..\\dot\\NXTP", zeusmmu(DotBank1), Length
 
 if enabled UploadNext
-  output_bin "R:\\dot\\NXTP", Start, Length
+  output_bin "R:\\dot\\NXTP", zeusmmu(DotBank1), Length
 endif
 
 if enabled CSpect
   if enabled RealESP
-    zeusinvoke "..\\..\\build\\cspect.bat"
+    zeusinvoke "..\\..\\build\\cspect.bat", "", false
   else
-    zeusinvoke "..\\..\\build\\cspect-emulate-esp.bat"
+    zeusinvoke "..\\..\\build\\cspect-emulate-esp.bat", "", false
   endif
 else
   zeusinvoke "..\\..\\build\\builddot.bat"

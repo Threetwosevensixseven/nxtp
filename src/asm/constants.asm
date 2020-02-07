@@ -17,6 +17,7 @@
 ; Application
 CoreMinVersion          equ $3004                       ; 3.00.04 has 28MHz
 TestVersion             equ "0004"                      ; Only used to make sure latest version is uploaded to board
+DotBank1:               equ 30
 MaxHostSize             equ 60
 MaxPortSize             equ 5
 MaxZoneSize             equ 32

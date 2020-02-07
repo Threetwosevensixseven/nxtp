@@ -11,5 +11,5 @@
 /dot/NXTP.piz
 /build/*.exe
 /build/*.ps1
+/build/zeus*.*
 /build/keymap.dat
-/build/zeus.ini

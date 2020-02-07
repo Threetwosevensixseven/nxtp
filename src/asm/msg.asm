@@ -145,7 +145,7 @@ HelpMsg:                db "NXTP", CR
                         db "  If omitted, uses UK time", CR
                         db "  List of timezone codes at:", CR
                         db "  https://tinyurl.com/tznxtp", CR, CR
-                        db "NXTP v1.", BuildNoValue, " ", BuildDateValue, CR
+                        db "NXTP v1.", BuildNoValue, " ", BuildDateValue, " ", BuildTimeSecsValue, CR
                         db Copyright, " 2019 Robin Verhagen-Guest", CR
                         db 0
 pend

@@ -30,9 +30,9 @@ ResponseStart:          dw $0000
 ResponseLen:            dw $0000
 Prescaler:              ds 3
 Buffer:                 ds 256
-BufferLen               equ $-Buffer
+BufferLen               equ $-BufferLen
 MsgBuffer:              ds 256
-MsgBufferLen            equ $-MsgBuffer
+MsgBufferLen            equ $-MsgBufferLen
 DateBuffer              db "\"00/00/0000\"", 0
 DateBufferInt           equ DateBuffer+1
 TimeBuffer              db "\"00:00:00\"", 0
