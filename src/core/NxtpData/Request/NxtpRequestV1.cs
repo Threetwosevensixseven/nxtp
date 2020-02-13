@@ -14,8 +14,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
 using NxtpData.Response;
+using TimeZoneConverter;
 
 namespace NxtpData.Request
 {
@@ -39,12 +41,15 @@ namespace NxtpData.Request
             string zone = (TimeZoneCode ?? "").Replace(" ", "").ToLower();
             foreach (var tz in TimeZoneInfo.GetSystemTimeZones())
             {
-                if (testMode && tz.Id == "GMT Standard Time")
+                string id = tz.Id;
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    TZConvert.TryIanaToWindows(tz.Id, out id);
+                if (testMode && id == "GMT Standard Time")
                 {
                     this.ZoneInfo = tz;
                     break;
                 }
-                else if (zone == tz.Id.Replace(" ", "").ToLower())
+                else if (zone == id.Replace(" ", "").ToLower())
                 {
                     this.ZoneInfo = tz;
                     break;
@@ -98,9 +103,12 @@ namespace NxtpData.Request
             {
                 foreach (var tz in TimeZoneInfo.GetSystemTimeZones())
                 {
-                    if (tz.Id == "GMT Standard Time")
+                    string id = tz.Id;
+                    if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        TZConvert.TryIanaToWindows(tz.Id, out id);
+                    if (id == "GMT Standard Time")
                     {
-                        this.TimeZoneCode = tz.Id.Replace(" ", "");
+                        this.TimeZoneCode = id.Replace(" ", "");
                         this.ZoneInfo = tz;
                         return this;
                     }
@@ -145,7 +153,10 @@ namespace NxtpData.Request
             }
             foreach (var tz in zones)
             {
-                if (zone == tz.Id.Replace(" ", "").ToLower())
+                string id = tz.Id;
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    TZConvert.TryIanaToWindows(tz.Id, out id);
+                if (zone == id.Replace(" ", "").ToLower())
                 {
                     zoneMatched = tz;
                     break;

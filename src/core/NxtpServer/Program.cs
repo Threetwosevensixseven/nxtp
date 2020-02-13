@@ -16,6 +16,7 @@ using NxtpData.Request;
 using NxtpServer.Classes;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -33,14 +34,19 @@ namespace NxtpServer
         static void Main(string[] args)
         {
             Console.WriteLine("Starting NXTP Server...");
+
+            if (args.Any(a => a == "-z"))
+            {
+                Console.WriteLine("Listing server timezone codes...");
+                Console.WriteLine();
+                Console.WriteLine(new NxtpData.TimezoneList().ToString());
+                Console.WriteLine();
+            }
+
             Console.WriteLine("Connect timeout: " + Options.ConnectTimeoutMilliseconds + " ms");
             Console.WriteLine("Send timeout:    " + Options.SendTimeoutMilliseconds + " ms");
             Console.WriteLine("Receive timeout: " + Options.ReceiveTimeoutMilliseconds + " ms");
-            //var list = new NxtpData.TimezoneList().ToString();
-            //TcpHelper.StartServer(Options.TCPListeningPort);
-            //TcpHelper.Listen();
 
-            //new Thread(new ThreadStart(backgroundThread)) { IsBackground = false }.Start();
             serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, Options.TCPListeningPort); //12300
             serverSocket.Bind(endPoint);
