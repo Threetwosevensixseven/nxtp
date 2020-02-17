@@ -47,6 +47,7 @@ Main                    proc
                         jp nz, Return.WithCustomError   ; Exit with error if not a Next
 
                         NextRegRead(Reg.MachineID)      ; If we passed that test we are safe to read machine ID.
+                        and %0000 1111                  ; Only look at bottom four bits, to allow for Next clones
                         cp 10                           ; 10 = ZX Spectrum Next
                         jp z, SetSpeed
                         cp 8                            ;  8 = Emulator
