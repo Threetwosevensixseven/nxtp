@@ -66,7 +66,7 @@ namespace NxtpServer
             Socket newSocket = oldSocket.EndAccept(result);
             newSocket.SendTimeout = Options.SendTimeoutMilliseconds;
             newSocket.ReceiveTimeout = Options.ReceiveTimeoutMilliseconds;
-            Client client = new Client((IPEndPoint)newSocket.RemoteEndPoint);
+            var client = new NxtpData.Client((IPEndPoint)newSocket.RemoteEndPoint);
             client.Register(newSocket);
             client.Socket = newSocket;
             client.Log("Connected");
@@ -93,7 +93,7 @@ namespace NxtpServer
             try
             {
                 Socket clientSocket = (Socket)result.AsyncState;
-                var client = Client.Find(clientSocket);
+                var client = NxtpData.Client.Find(clientSocket);
                 int received = clientSocket.EndReceive(result);
                 if (received == 0)
                 {
@@ -113,7 +113,7 @@ namespace NxtpServer
                     client.Log("Trying protocol version 1 (TEST mode)");
                 else
                     client.Log("Trying protocol version " + version);
-                var req = NxtpRequestFactory.Create(version, data, received);
+                var req = NxtpRequestFactory.Create(client, version, data, received);
                 if (req == null)
                 {
                     client.Log("Cannot process protocol version");
@@ -149,7 +149,7 @@ namespace NxtpServer
             try
             {
                 Socket clientSocket = (Socket)result.AsyncState;
-                var client = Client.Find(clientSocket);
+                var client = NxtpData.Client.Find(clientSocket);
                 client.Disconnect();
             }
             catch

@@ -22,7 +22,7 @@ namespace NxtpData.Response
 {
     public class NxtpResponseV1 : INxtpResponse
     {
-        private NxtpRequestV1 request;
+        protected NxtpRequestV1 request;
         private DateTime result;
         public string DateFormatted { get; set; }
         public string TimeFormatted { get; set; }
@@ -54,14 +54,14 @@ namespace NxtpData.Response
                 + " in zone " + request.ZoneInfo.DisplayName;
         }
 
-        public byte[] Serialize()
+        public virtual byte[] Serialize()
         {
             var rv = new List<byte>();
             rv.Add(request.Version);
             rv.Add(0);  // Date length (index 1)
             rv.Add(0);  // Time length (index 2)
             var zoneInfo = TimeZoneInfo.FindSystemTimeZoneById(request.ZoneInfo.Id);
-            var now = DateTime.UtcNow;
+            var now = UtcNow;
             result = TimeZoneInfo.ConvertTimeFromUtc(now, zoneInfo);
             string date = result.ToString("dd/MM/yyyy");
             var dateB = Encoding.ASCII.GetBytes(date.ToString());
@@ -78,7 +78,7 @@ namespace NxtpData.Response
             return rv.ToArray();
         }
 
-        public INxtpResponse Deserialize(byte[] Data, int DataSize)
+        public virtual INxtpResponse Deserialize(byte[] Data, int DataSize)
         {
             INxtpResponse rv = null;
 
@@ -135,6 +135,14 @@ namespace NxtpData.Response
             }
 
             return this;
+        }
+
+        public virtual DateTime UtcNow
+        {
+            get
+            {
+                return DateTime.UtcNow;
+            }
         }
     }
 }

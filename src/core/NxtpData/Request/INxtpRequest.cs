@@ -24,7 +24,7 @@ namespace NxtpData.Request
         public byte Version { get; }
         public byte ChecksumSeed { get; }
         public byte[] Serialize();
-        public INxtpRequest Deserialize(byte[] Data, int DataSize);
+        public INxtpRequest Deserialize(Client Client, byte[] Data, int DataSize);
         public INxtpResponse GetResponse();
         public string ToHex();
     }

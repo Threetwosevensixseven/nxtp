@@ -15,18 +15,18 @@
 using NxtpData.Response;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace NxtpData.Request
 {
     public class NxtpRequestFactory
     {
-        public static INxtpRequest Create(byte Version, byte[] Data, int DataSize)
+        public static INxtpRequest Create(Client Client, byte Version, byte[] Data, int DataSize)
         {
-            var types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
-                .Where(x => typeof(INxtpRequest).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract);
-            foreach (Type type in types)
+            foreach (Type type in GetTypes())
             {
                 INxtpRequest creator = null;
                 INxtpRequest request = null;
@@ -48,7 +48,7 @@ namespace NxtpData.Request
                         testMode = text == "TEST";
                     }
                     if (creator != null && (testMode || creator.Version == Version))
-                        request = creator.Deserialize(Data, DataSize);
+                        request = creator.Deserialize(Client, Data, DataSize);
                 }
                 catch
                 {
@@ -60,6 +60,31 @@ namespace NxtpData.Request
             }
             // No classes can handle the protocol
             return null;
+        }
+
+        private static List<Type> _types = null;
+        public static List<Type> GetTypes()
+        {
+            if (_types == null)
+            {
+                var types = new List<Type>();
+                foreach (var dll in Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll"))
+                {
+                    try
+                    {
+                        var assy = Assembly.LoadFrom(dll);
+                        if (assy == typeof(INxtpRequest).Assembly)
+                            continue;
+                        types.AddRange(assy.GetTypes()
+                            .Where(x => typeof(INxtpRequest).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract));
+                    }
+                    catch { }
+                }
+                types.AddRange(typeof(INxtpRequest).Assembly.GetTypes()
+                    .Where(x => typeof(INxtpRequest).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract));
+                _types = types;
+            }
+            return _types;
         }
     }
 }

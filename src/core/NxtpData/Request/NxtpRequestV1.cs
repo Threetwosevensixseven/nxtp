@@ -25,6 +25,7 @@ namespace NxtpData.Request
     {
         public string TimeZoneCode { get; set; }
         public TimeZoneInfo ZoneInfo { get; set; }
+        public virtual Client Client { get; private set; }
 
         // Must have a parameterless constructor
         public NxtpRequestV1()
@@ -69,7 +70,7 @@ namespace NxtpData.Request
             return sb.ToString();
         }
 
-        public byte[] Serialize()
+        public virtual byte[] Serialize()
         {
             if ((TimeZoneCode ?? "").Trim().ToUpper() == "TEST")
                 return Encoding.ASCII.GetBytes("tEsT");
@@ -86,7 +87,7 @@ namespace NxtpData.Request
             return rv.ToArray();
         }
 
-        public INxtpRequest Deserialize(byte[] Data, int DataSize)
+        public virtual INxtpRequest Deserialize(Client Client, byte[] Data, int DataSize)
         {
             INxtpRequest rv = null;
 
@@ -166,13 +167,14 @@ namespace NxtpData.Request
                 return rv;
 
             // Passed validation, set timezone
+            this.Client = Client;
             this.TimeZoneCode = zone;
             this.ZoneInfo = zoneMatched;
 
             return this;
         }
 
-        public INxtpResponse GetResponse()
+        public virtual INxtpResponse GetResponse()
         {
             return new NxtpResponseV1(this);
         }
