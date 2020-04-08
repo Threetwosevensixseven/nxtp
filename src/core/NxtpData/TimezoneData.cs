@@ -39,6 +39,10 @@ namespace NxtpData
                 return "gmtstandardtime";
             else if (TimeZoneCode == "gmt")
                 return "gmtstandardtime";
+            else if (TimeZoneCode == "cet")
+                return "centraleuropestandardtime";
+            else if (TimeZoneCode == "est")
+                return "easternstandardtime";
             return TimeZoneCode;
         }
     }

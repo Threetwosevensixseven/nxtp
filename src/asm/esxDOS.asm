@@ -38,17 +38,8 @@ esx_seek_set            equ $00         ; set the fileposition to BCDE
 esx_seek_fwd            equ $01         ; add BCDE to the fileposition
 esx_seek_bwd            equ $02         ; subtract BCDE from the fileposition
 
-DefaultDrive            db 0
+DefaultDrive            db '$'          ; Because we're only opening dot commands, pre-load default as system drive
 Handle                  db 255
-
-; Function:             Detect if unit is ready
-; Out:                  A = default drive (required for all file access)
-;                       Carry flag will be set if error.
-GetSetDrive:
-                        xor a                           ; A=0, get the default drive
-                        Rst8(esxDOS.M_GETSETDRV)
-                        ld (DefaultDrive), a
-                        ret
 
 ; Function:             Open file
 ; In:                   HL = pointer to file name (ASCIIZ) (IX for non-dot commands)

@@ -355,7 +355,6 @@ PrintDateTime:
                         rst 16
 CallDotDate:
                         PrintMsg(Msg.Setting)
-                        call esxDOS.GetSetDrive
                         ld hl, Files.Date               ; HL not IX because we are in a dot command
                         call esxDOS.fOpen               ; Open .date file
                         ErrorIfCarry(Err.DateNFF)       ; Raise missing .date error if not loaded
