@@ -29,6 +29,8 @@ If you have a GitHub account you can elect to be notified whenever there is a pr
 ## Copyright and Licence
 *nxtp* is © 2019-2020 Robin Verhagen-Guest, and licensed under [Apache 2.0](LICENSE). 
 
+[hdfmonkey](https://github.com/gasman/hdfmonkey) is copyright © Matt Westcott 2010, and is licensed under [GPL-3.0](https://github.com/gasman/hdfmonkey/blob/master/COPYING).
+
 Everyone is encouraged to host a public *nxtp* server, or port the *nxtp* client to a different machine or architecture.
 
 ZX Spectrum Next is a trademark of SpecNext Ltd.
