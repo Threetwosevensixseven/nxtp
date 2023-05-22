@@ -15,22 +15,26 @@ To sync date and time every time you boot your Next, set up `AUTOEXEC.BAS` as de
 
 ## *nxtp* Server
 
-The server is written in C# using .NET Core 3.0, and can be hosted on any Windows, Mac or linux computer. You may use the public server hosted by the Next team, or run your own private copy of the server on your PC. You may also run the server on a Raspberry Pi running Raspbian. It is lightweight enough to run on a wifi-equipped Raspberry Pi Zero W.
+This server implementation is written in C# using .NET Core 3.0, and can be hosted on any Windows, Mac or linux computer. You may use the public server hosted by the Next team, or run your own private copy of the server on your PC. You may also run the server on a Raspberry Pi running Raspbian. It is lightweight enough to run on a wifi-equipped Raspberry Pi Zero W.
+
+[nxtp-js](https://github.com/syroegkin/nxtp-js) is another Node.js server implementation by [Sergii Skorokhodov](https://github.com/syroegkin).
+
+A list of all known public servers is available [here](https://github.com/Threetwosevensixseven/nxtp/wiki/NXTP-Public-Servers).
 
 ## Protocol
 
 The *nxtp* protocol is documented [here](https://github.com/Threetwosevensixseven/nxtp/wiki/NXTP-Protocol).
 
 ## Project Status
-*nxtp* is currently in beta testing. Download the latest Next client [here](https://github.com/Threetwosevensixseven/nxtp/releases/latest). 
+Download the latest Next client [here](https://github.com/Threetwosevensixseven/nxtp/releases/latest). 
 
 If you have a GitHub account you can elect to be notified whenever there is a project release.
 
 ## Copyright and Licence
-*nxtp* is © 2019-2020 Robin Verhagen-Guest, and licensed under [Apache 2.0](LICENSE). 
+*nxtp* is © 2019-2023 Robin Verhagen-Guest, and licensed under [Apache 2.0](LICENSE). 
 
 [hdfmonkey](https://github.com/gasman/hdfmonkey) is copyright © Matt Westcott 2010, and is licensed under [GPL-3.0](https://github.com/gasman/hdfmonkey/blob/master/COPYING).
 
-Everyone is encouraged to host a public *nxtp* server, or port the *nxtp* client to a different machine or architecture.
+Everyone is encouraged to host a public *nxtp* server, or port the *nxtp* client or server to a different machine or architecture.
 
 ZX Spectrum Next is a trademark of SpecNext Ltd.
