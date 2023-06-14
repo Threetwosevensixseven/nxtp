@@ -19,6 +19,8 @@ This server implementation is written in C# using .NET Core 3.0, and can be host
 
 [nxtp-js](https://github.com/syroegkin/nxtp-js) is another Node.js server implementation by [Sergii Skorokhodov](https://github.com/syroegkin).
 
+[nxtp](https://github.com/kgaughan/nxtp) is another Go server and client implementation by [Keith Gaughan](https://github.com/kgaughan).
+
 A list of all known public servers is available [here](https://github.com/Threetwosevensixseven/nxtp/wiki/NXTP-Public-Servers).
 
 ## Protocol
