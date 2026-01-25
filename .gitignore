@@ -13,5 +13,6 @@
 /build/*.ps1
 /build/zeus*.*
 /build/keymap.dat
-/build/zeus/*.*
 /dot/NXTP_ZeusSafe
+/build/zeus/keymap.dat
+/build/zeus/zeustest.ini
