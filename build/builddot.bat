@@ -4,6 +4,6 @@ C:
 CD %~dp0
 
 
-ZXVersion.exe
+::ZXVersion.exe
 
 ::pause
