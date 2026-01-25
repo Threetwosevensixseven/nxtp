@@ -1,6 +1,6 @@
 ; vars.asm
 
-;  Copyright 2019-2020 Robin Verhagen-Guest
+;  Copyright 2019-2026 Robin Verhagen-Guest
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License");
 ; you may not use this file except in compliance with the License.

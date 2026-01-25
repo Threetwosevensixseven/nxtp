@@ -1,6 +1,6 @@
 ; parse.asm
 
-;  Copyright 2019-2020 Robin Verhagen-Guest
+;  Copyright 2019-2026 Robin Verhagen-Guest
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License");
 ; you may not use this file except in compliance with the License.
@@ -14,56 +14,53 @@
 ; See the License for the specific language governing permissions and
 ; limitations under the License.
 
-FindColonOrCR           proc
+FindColonOrCR:
                         ld bc, 0
-Loop:                   ld a, (hl)
+.loop:                  ld a, (hl)
                         cp ':'
                         ret z
                         cp CR
                         ret z
                         inc hl
                         inc bc
-                        jr Loop
-pend
+                        jr .loop
 
-FindNonSpace            proc
+FindNonSpace:
                         ld de, (ArgsEnd)
-Loop:                   ld a, (hl)
+.loop:                  ld a, (hl)
                         cp Space
                         ret nz                          ; Return with carry clear if found
                         inc hl
                         ld a, e
                         cp l
-                        jr nz, Loop
+                        jr nz, .loop
                         ld a, d
                         cp h
-                        jr nz, Loop
+                        jr nz, .loop
                         scf
                         ret                             ; Return with carry set if not found
-pend
 
-FindSpace               proc
+FindSpace:
                         ld bc, 0
                         ld de, (ArgsEnd)
-Loop:                   ld a, (hl)
+.loop:                  ld a, (hl)
                         cp Space
                         ret z                           ; Return with carry clear if found
                         inc hl
                         inc bc
                         ld a, e
                         cp l
-                        jr nz, Loop
+                        jr nz, .loop
                         ld a, d
                         cp h
-                        jr nz, Loop
+                        jr nz, .loop
                         scf
                         ret                             ; Return with carry set if not found
-pend
 
-FindSpaceColonCR        proc
+FindSpaceColonCR:
                         ld bc, 0
                         ld de, (ArgsEnd)
-Loop:                   ld a, (hl)
+.loop:                  ld a, (hl)
                         cp Space
                         ret z                           ; Return with carry clear if found
                         cp ':'
@@ -74,16 +71,15 @@ Loop:                   ld a, (hl)
                         inc bc
                         ld a, e
                         cp l
-                        jr nz, Loop
+                        jr nz, .loop
                         ld a, d
                         cp h
-                        jr nz, Loop
+                        jr nz, .loop
                         //scf
                         or a
                         ret                             ; Return with carry set if not found
-pend
 
-GetBufferLength         proc
+GetBufferLength:
                         push hl
                         ld bc, BufferLen
                         xor a
@@ -95,56 +91,54 @@ GetBufferLength         proc
                         ld e, l
                         pop hl
                         ret
-pend
 
-ConvertWordToAsc        proc                            ; Input word in hl
+ConvertWordToAsc:                                       ; Input word in hl
                         ld de, WordStart                ; Returns with output word in hl and length in a
                         ld bc, -10000
-                        call Num1
+                        call .num1
                         ld bc, -1000
-                        call Num1
+                        call .num1
                         ld bc, -100
-                        call Num1
+                        call .num1
                         ld c, -10
-                        call Num1
+                        call .num1
                         ld c, -1
-                        call Num1
+                        call .num1
                         ld hl, WordStart
                         ld b, 5
                         ld c, '0'
-FindLoop:               ld a, (hl)
+.findLoop:              ld a, (hl)
                         cp c
-                        jp nz, Found
+                        jp nz, .found
                         inc hl
-                        djnz FindLoop
-Found:                  ld a, b
+                        djnz .findLoop
+.found:                 ld a, b
                         ld (WordLen), a
                         ld (WordStart), hl
                         ret
-Num1:                   ld a, '0'-1
-Num2:                   inc a
+.num1:                  ld a, '0'-1
+.num2:                  inc a
                         add hl, bc
-                        jr c, Num2
+                        jr c, .num2
                         sbc hl, bc
                         ld (de), a
                         inc de
                         ret
-pend
 
-DecimalDigits proc Table:
-
+DecimalDigits.Table:
 ; Multipler  Index  Digits
   dw      1  ;   0       1
   dw     10  ;   1       2
   dw    100  ;   2       3
   dw   1000  ;   3       4
   dw  10000  ;   4       5
-pend
 
-DecodeDecimalProc       proc                            ; IN:   b = digit count
+
+DecodeDecimalProc:                                      ; IN:   b = digit count
                         ld hl, 0                        ; OUT: hl = return value (0..65535)
-                        ld (Total), hl
-DigitLoop:              ld a, b
+                        ld (DDP.total), hl
+DDP.digitLoop:
+                        ld a, b
                         dec a
                         add a, a
                         ld hl, DecimalDigits.Table
@@ -152,53 +146,48 @@ DigitLoop:              ld a, b
                         ld e, (hl)
                         inc hl
                         ld d, (hl)                      ; de = digit multiplier (1, 10, 100, 1000, 10000)
-                        ld (DigitMultiplier), de
-DecimalBuffer equ $+1:  ld hl, SMC
+                        ld (DDP.digitMultiplier), de
+DecodeDecimalProc.DecimalBuffer+*:ld hl, SMC
                         inc hl
-                        ld (DecimalBuffer), hl
+                        ld (DecodeDecimalProc.DecimalBuffer), hl
                         ld a, (hl)
                         sub '0'                         ; a = digit 0..9 (could also be out of range)
                         exx
                         ld hl, 0
                         or a
-                        jp z, DontAdd
-MultiplyLoop:
-DigitMultiplier equ $+2:add hl, SMC                     ; Next-only opcode
+                        jp z, DDP.dontAdd
+DDP.multiplyLoop:
+DDP.digitMultiplier+*:  add hl, SMC                     ; Next-only opcode
                         dec a
-                        jp nz, MultiplyLoop
-DontAdd:
-Total equ $+2:          add hl, SMC                     ; Next-only opcode
-                        ld (Total), hl
+                        jp nz, DDP.multiplyLoop
+DDP.dontAdd:
+DDP.total+*:            add hl, SMC                     ; Next-only opcode
+                        ld (DDP.total), hl
                         exx
-                        djnz DigitLoop                  ; Repeat until no more digits left (b = 0..5)
-                        ld hl, (Total)                  ; hl = return value (0..65535)
+                        djnz DDP.digitLoop              ; Repeat until no more digits left (b = 0..5)
+                        ld hl, (DDP.total)                 ; hl = return value (0..65535)
                         ret
-pend
 
-NextRegReadProc         proc
+NextRegReadProc:
                         out (c), a
                         inc b
                         in a, (c)
                         ret
-pend
 
-ReadAndCheckDigit       proc
+ReadAndCheckDigit:
                         ld a, (hl)
                         cp '0'
                         ret c                           ; Return with carry set if < 0
                         cp '9'+1
-                        jr nc, Err                      ; Return with carry set if > 9
+                        jr nc, .err                     ; Return with carry set if > 9
                         or a
                         ret                             ; Return with carry clear if 0..9
-Err:                    scf
+.err:                   scf
                         ret
-pend
 
-WaitFramesProc          proc
+WaitFramesProc:
                         ei
-Loop:                   halt
-                        djnz Loop
+.loop:                   halt
+                        djnz .loop
                         di
                         ret
-pend
-

@@ -1,0 +1,4 @@
+{
+    "dotnet.defaultSolution": "disable",
+    "workbench.cloudChanges.continueOn": "off"
+}

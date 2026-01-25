@@ -16,3 +16,5 @@
 /dot/NXTP_ZeusSafe
 /build/zeus/keymap.dat
 /build/zeus/zeustest.ini
+/src/asm/main.lst
+/src/asm/main.sym

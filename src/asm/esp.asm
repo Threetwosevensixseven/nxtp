@@ -1,6 +1,6 @@
 ; esp.asm
 
-;  Copyright 2019-2020 Robin Verhagen-Guest
+;  Copyright 2019-2026 Robin Verhagen-Guest
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License");
 ; you may not use this file except in compliance with the License.
@@ -14,170 +14,137 @@
 ; See the License for the specific language governing permissions and
 ; limitations under the License.
 
-Cmd                     proc
-  CIPSTART1:            db "AT+CIPSTART=\"TCP\",\""
-                        CIPSTART1Len equ $-CIPSTART1
-  CIPSTART2:            db "\","
-                        CIPSTART2Len equ $-CIPSTART2
-  Terminate:            db CR, LF, 0
-                        TerminateLen equ $-Terminate
-  CIPSEND:              db "AT+CIPSEND="
-                        CIPSENDLen equ $-CIPSEND
-pend
+Cmd.CIPSTART1:          db "AT+CIPSTART=\"TCP\",\""
+Cmd.CIPSTART1Len        equ $-Cmd.CIPSTART1
+Cmd.CIPSTART2:          db "\","
+Cmd.CIPSTART2Len        equ $-Cmd.CIPSTART2
+Cmd.Terminate:          db CR, LF, 0
+Cmd.TerminateLen        equ $-Cmd.Terminate
+Cmd.CIPSEND:            db "AT+CIPSEND="
+Cmd.CIPSENDLen          equ $-Cmd.CIPSEND
 
-Baud                    proc Table:
+Baud.Table:
                         dw $8173, $8178, $817F, $8204, $820D, $8215, $821E, $816A
-pend
-
-ESPSend                 macro(Text)                     ; 1 <= length(Text) <= 253
-                        ld hl, Address                  ; Start of the text to send
-                        ld e, length(Text)+2            ; Length of the text to send, including terminating CRLF
-                        jp ESPSendProc                  ; Remaining send code is generic and reusable
-Address:                db Text                         ; Text bytes get planted at the end of the macro
-                        db CR, LF                       ; Followed by CRLF
-mend                                                    ; ESPSendProc jumps back to the address after the CRLF.
-
-ESPSendBytes            macro(Address, Length)          ; 1 <= length(Text) <= 255 - MUST HAVE CRLF termination
-                        ld hl, Address                  ; Start of the text to send
-                        ld e, Length                    ; Length of the text to send, including terminating CRLF
-                        jp ESPSendProc                  ; Remaining send code is generic and reusable
-mend                                                    ; ESPSendProc jumps back to the address after the CRLF.
-
-ESPSendBuffer           macro(Address)                  ; 1 <= length(Text) <= 255 - MUST HAVE CRLF termination
-                        ld hl, Address                  ; Start of the text to send
-                        call GetBufferLength            ; returns with length in e and hl preserved
-                        call ESPSendBufferProc          ; Remaining send code is generic and reusable
-mend
-
-ESPSendBufferLen        macro(Address, LenAddr)         ; 1 <= length(Text) <= 255 - MUST HAVE CRLF termination
-                        ld hl, Address                  ; Start of the text to send
-                        ld de, (LenAddr)
-                        call ESPSendBufferProc          ; Remaining send code is generic and reusable
-mend
-
-ESPSendProc             proc
+                        
+ESPSendProc:
                         call InitESPTimeout
                         ld bc, UART_GetStatus           ; UART Tx port also gives the UART status when read
-ReadNextChar:           ld d, (hl)                      ; Read the next byte of the text to be sent
-WaitNotBusy:            in a, (c)                       ; Read the UART status
+.readNextChar:          ld d, (hl)                      ; Read the next byte of the text to be sent
+.waitNotBusy:           in a, (c)                       ; Read the UART status
                         and UART_mTX_BUSY               ; and check the busy bit (bit 1)
-                        jr nz, CheckTimeout             ; If busy, keep trying until not busy
+                        jr nz, .checkTimeout            ; If busy, keep trying until not busy
                         out (c), d                      ; Otherwise send the byte to the UART Tx port
                         inc hl                          ; Move to next byte of the text
                         dec e                           ; Check whether there are any more bytes of text
-                        jp nz, ReadNextChar             ; If there are, read and repeat
+                        jp nz, .readNextChar            ; If there are, read and repeat
                         jp (hl)                         ; Otherwise we are now pointing at the byte after the macro
-CheckTimeout:           call CheckESPTimeout
-                        jp WaitNotBusy
-pend
+.checkTimeout:          call CheckESPTimeout
+                        jp .waitNotBusy
 
-ESPSendBufferProc       proc
+ESPSendBufferProc:
                         call InitESPTimeout
                         ld bc, UART_GetStatus           ; UART Tx port also gives the UART status when read
-ReadNextChar:           ld d, (hl)                      ; Read the next byte of the text to be sent
-WaitNotBusy:            in a, (c)                       ; Read the UART status
+.readNextChar:          ld d, (hl)                      ; Read the next byte of the text to be sent
+.waitNotBusy:           in a, (c)                       ; Read the UART status
                         and UART_mTX_BUSY               ; and check the busy bit (bit 1)
-                        jr nz, CheckTimeout             ; If busy, keep trying until not busy
+                        jr nz, .checkTimeout            ; If busy, keep trying until not busy
                         out (c), d                      ; Otherwise send the byte to the UART Tx port
                         inc hl                          ; Move to next byte of the text
                         dec e                           ; Check whether there are any more bytes of text
-                        jp nz, ReadNextChar             ; If there are, read and repeat
+                        jp nz, .readNextChar             ; If there are, read and repeat
                         ret
-CheckTimeout:           call CheckESPTimeout
-                        jp WaitNotBusy
-pend
+.checkTimeout:          call CheckESPTimeout
+                        jp .waitNotBusy
 
-ESPReceiveWaitOK        proc
+ESPReceiveWaitOK:
                         call InitESPTimeout
                         xor a
-                        ld (State), a
-                        ld hl, FirstChar
-                        ld (StateJump), hl
-NotReady:               ld a, 255
+                        ld (.state), a
+                        ld hl, .firstChar
+                        ld (.stateJump), hl
+.notReady:              ld a, 255
                         ld(23692), a                    ; Turn off ULA scroll
                         ld a, high UART_GetStatus       ; Are there any characters waiting?
                         in a, (low UART_GetStatus)      ; This inputs from the 16-bit address UART_GetStatus
                         rrca                            ; Check UART_mRX_DATA_READY flag in bit 0
-                        jp nc, CheckTimeout             ; If not, retry
+                        jp nc, .checkTimeout            ; If not, retry
                         ld a, high UART_RxD             ; Otherwise Read the byte
                         in a, (low UART_RxD)            ; from the UART Rx port
-StateJump equ $+1:      jp SMC
-FirstChar:              cp 'O'
-                        jp z, MatchOK
+.stateJump+*:           jp SMC
+.firstChar:             cp 'O'
+                        jp z, .matchOK
                         cp 'E'
-                        jp z, MatchError
+                        jp z, .matchError
                         cp 'S'
-                        jp z, MatchSendFail
-                        jp Print
-SubsequentChar:         cp (hl)
-                        jp z, MatchSubsequent
-                        ld hl, FirstChar
-                        ld (StateJump), hl
-Print:                  call CheckESPTimeout
-Compare equ $+1:        ld de, SMC
+                        jp z, .matchSendFail
+                        jp .print
+.subsequentChar:        cp (hl)
+                        jp z, .matchSubsequent
+                        ld hl, .firstChar
+                        ld (.stateJump), hl
+.print:                 call CheckESPTimeout
+.compare equ $+1:       ld de, SMC
                         push hl
-                        CpHL(de)
+                        CPHL de
                         pop hl
-                        jp nz, NotReady
-                        ld a, (State)
+                        jp nz, .notReady
+                        ld a, (.state)
                         cp 0
                         ret z
                         scf
                         ret
-MatchSubsequent:        inc hl
-                        jp Print
-MatchOK:                ld hl, SubsequentChar
-                        ld (StateJump), hl
-                        ld hl, OKEnd
-                        ld (Compare), hl
-                        ld hl, OK
+.matchSubsequent:       inc hl
+                        jp .print
+.matchOK:               ld hl, .subsequentChar
+                        ld (.stateJump), hl
+                        ld hl, .okEnd
+                        ld (.compare), hl
+                        ld hl, .ok
                         xor a
-                        ld (State), a
-                        jp Print
-MatchError:             ld hl, SubsequentChar
-                        ld (StateJump), hl
-                        ld hl, ErrorEnd
-                        ld (Compare), hl
-                        ld hl, Error
+                        ld (.state), a
+                        jp .print
+.matchError:            ld hl, .subsequentChar
+                        ld (.stateJump), hl
+                        ld hl, .errorEnd
+                        ld (.compare), hl
+                        ld hl, .error
                         ld a, 1
-                        ld (State), a
-                        jp Print
-MatchSendFail:          ld hl, SubsequentChar
-                        ld (StateJump), hl
-                        ld hl, SendFailEnd
-                        ld (Compare), hl
-                        ld hl, Error
+                        ld (.state), a
+                        jp .print
+.matchSendFail:         ld hl, .subsequentChar
+                        ld (.stateJump), hl
+                        ld hl, .sendFailEnd
+                        ld (.compare), hl
+                        ld hl, .error
                         ld a, 2
-                        ld (State), a
-                        jp Print
-CheckTimeout:           call CheckESPTimeout
-                        jp NotReady
-State:                  db 0
-OK:                     db "K", CR, LF
-OKEnd:
-Error:                  db "RROR", CR, LF
-ErrorEnd:
-SendFail:               db "END FAIL", CR, LF
-SendFailEnd:
-pend
+                        ld (.state), a
+                        jp .print
+.checkTimeout:          call CheckESPTimeout
+                        jp .notReady
+.state:                 db 0
+.ok:                    db "K", CR, LF
+.okEnd:
+.error:                 db "RROR", CR, LF
+.errorEnd:
+.sendFail:              db "END FAIL", CR, LF
+.sendFailEnd:
 
-ESPReceiveWaitPrompt    proc
+ESPReceiveWaitPrompt:
                         call InitESPTimeout
                         ld a, high UART_GetStatus       ; Are there any characters waiting?
-WaitNotBusy:            in a, (low UART_GetStatus)      ; This inputs from the 16-bit address UART_GetStatus
+.waitNotBusy:           in a, (low UART_GetStatus)      ; This inputs from the 16-bit address UART_GetStatus
                         rrca                            ; Check UART_mRX_DATA_READY flag in bit 0
-                        jp nc, CheckTimeout             ; If not, retry
+                        jp nc, .checkTimeout            ; If not, retry
                         ld a, high UART_RxD             ; Otherwise Read the byte
                         in a, (low UART_RxD)            ; from the UART Rx port
                         cp '>'
-                        jp z, Success
-CheckTimeout:           call CheckESPTimeout
-                        jp WaitNotBusy
-Success:                or a
+                        jp z, .success
+.checkTimeout:          call CheckESPTimeout
+                        jp .waitNotBusy
+.success:               or a
                         ret
-pend
 
-InitESPTimeout          proc
+InitESPTimeout:
                         push hl
                         ld hl, ESPTimeout mod 65536     ; Timeout is a 32-bit value, so save the two LSBs first,
                         ld (CheckESPTimeout.Value), hl
@@ -185,86 +152,78 @@ InitESPTimeout          proc
                         ld (CheckESPTimeout.Value2), hl
                         pop hl
                         ret
-pend
 
-CheckESPTimeout         proc
+CheckESPTimeout:
                         push hl
                         push af
-Value equ $+1:          ld hl, SMC
+CheckESPTimeout.Value+*:ld hl, SMC
                         dec hl
-                        ld (Value), hl
+                        ld (CheckESPTimeout.Value), hl
                         ld a, h
                         or l
-                        jr z, Rollover
-Success:                pop af
+                        jr z, CheckESPTimeout.Rollover
+CheckESPTimeout.Success:pop af
                         pop hl
                         ret
-Failure:                ld hl, Err.ESPTimeout           ; Ignore current stack depth, and just jump
-HandleError:
-                        if enabled ErrDebug
-                          call PrintRst16Error
-Stop:                     Border(2)
-                          jr Stop
-                        else
-                          push hl
-                          call PrintRst16Error
-                          pop hl
-                          jp Return.WithCustomError     ; Straight to the error handing exit routine
-                        endif
-Rollover:
-Value2 equ $+1:         ld hl, SMC                      ; Check the two upper values
+CheckESPTimeout.Failure:ld hl, Err.ESPTimeout           ; Ignore current stack depth, and just jump
+CheckESPTimeout.HandleError:
+                        push hl
+                        call PrintRst16Error
+                        pop hl
+                        jp Return.WithCustomError       ; Straight to the error handing exit routine
+CheckESPTimeout.Rollover:
+CheckESPTimeout.Value2+*:ld hl, SMC                     ; Check the two upper values
                         ld a, h
                         or l
-                        jr z, Failure                   ; If we hit here, 32 bit value is $00000000
+                        jr z, CheckESPTimeout.Failure   ; If we hit here, 32 bit value is $00000000
                         dec hl
-                        ld (Value2), hl
+                        ld (CheckESPTimeout.Value2), hl
                         ld hl, ESPTimeout mod 65536
-                        ld (Value), hl
-                        jr Success
-pend
+                        ld (CheckESPTimeout.Value), hl
+                        jr CheckESPTimeout.Success
 
-CheckESPTimeout2        proc
+CheckESPTimeout2:
                         push hl
                         push af
-Value equ $+1:          ld hl, SMC
+CheckESPTimeout2.Value+*:ld hl, SMC
                         dec hl
-                        ld (Value), hl
+                        ld (CheckESPTimeout2.Value), hl
                         ld a, h
                         or l
-                        jp z, Rollover
-Success:
+                        jp z, CheckESPTimeout2.Rollover
+CheckESPTimeout2.Success:
                         pop af
                         pop hl
                         or a
                         ret
-Failure:
+CheckESPTimeout2.Failure:
                         pop af
                         pop hl
                         scf
                         ret
-Rollover:
-Value2 equ $+1:         ld hl, SMC                      ; Check the two upper values
+CheckESPTimeout2.Rollover:
+CheckESPTimeout2.Value2+*:ld hl, SMC                    ; Check the two upper values
                         ld a, h
                         or l
-                        jr z, Failure                   ; If we hit here, 32 bit value is $00000000
+                        jr z, CheckESPTimeout2.Failure  ; If we hit here, 32 bit value is $00000000
                         dec hl
-                        ld (Value2), hl
+                        ld (CheckESPTimeout2.Value2), hl
                         ld hl, ESPTimeout mod 65536
-                        ld (Value), hl
-                        jr Success
-pend
+                        ld (CheckESPTimeout2.Value), hl
+                        jr CheckESPTimeout2.Success
 
-ESPReceiveBuffer        proc
+
+ESPReceiveBuffer:
                         ld hl, ESPTimeout2 mod 65536
                         ld (CheckESPTimeout2.Value), hl
                         ld hl, ESPTimeout2 / 65536
                         ld (CheckESPTimeout2.Value), hl
                         ld hl, Buffer
                         ld de, BufferLen
-ReadLoop:               ld a, high UART_GetStatus       ; Are there any characters waiting?
+.readLoop:              ld a, high UART_GetStatus       ; Are there any characters waiting?
                         in a, (low UART_GetStatus)      ; This inputs from the 16-bit address UART_GetStatus
                         rrca                            ; Check UART_mRX_DATA_READY flag in bit 0
-                        jp nc, CheckTimeout             ; Return immmediately if not ready (we call this in a tight loop)
+                        jp nc, .checkTimeout            ; Return immmediately if not ready (we call this in a tight loop)
                         ld a, high UART_RxD             ; Otherwise Read the byte
                         in a, (low UART_RxD)            ; from the UART Rx port
                         ld (hl), a
@@ -272,84 +231,82 @@ ReadLoop:               ld a, high UART_GetStatus       ; Are there any characte
                         dec de
                         ld a, d
                         or e
-                        jp z, Finished
-                        jp ReadLoop
-CheckTimeout:           call CheckESPTimeout2
-                        jp nc, ReadLoop
-Finished:               ld hl, BufferLen
+                        jp z, .finished
+                        jp .readLoop
+.checkTimeout:          call CheckESPTimeout2
+                        jp nc, .readLoop
+.finished:              ld hl, BufferLen
                         sbc hl, de
                         inc hl
                         ld (ResponseLen), hl
                         ret
-pend
 
-ParseIPDPacket          proc
+ParseIPDPacket:
                         ld hl, Buffer
                         ld bc, (ResponseLen)
-SearchAgain:            ld a, b
+.searchAgain:           ld a, b
                         or a
-                        jp m, NotFound                  ; If bc has gone negative then not found
+                        jp m, .notFound                  ; If bc has gone negative then not found
                         or c
-                        jp z, NotFound                  ; If bc is zero then not found
+                        jp z, .notFound                  ; If bc is zero then not found
                         ld a, '+'
                         cpir
-                        jp po, NotFound
+                        jp po, .notFound
                         ld a, (hl)
                         cp 'I'
-                        jr nz, SearchAgain
+                        jr nz, .searchAgain
                         inc hl
                         dec bc
                         ld a, (hl)
                         cp 'P'
-                        jr nz, SearchAgain
+                        jr nz, .searchAgain
                         inc hl
                         dec bc
                         ld a, (hl)
                         cp 'D'
-                        jr nz, SearchAgain
+                        jr nz, .searchAgain
                         inc hl
                         dec bc
                         ld a, (hl)
                         cp ','
-                        jr nz, SearchAgain
+                        jr nz, .searchAgain
                         inc hl
-ParseNumber:            ld (NumStart), hl
+.parseNumber:           ld (.numStart), hl
                         ld bc, 0
-ParseNumberLoop:        ld a, (hl)
+.parseNumberLoop:       ld a, (hl)
                         cp ':'
-                        jr z, FinishedNumber
+                        jr z, .finishedNumber
                         cp '0'
-                        jp c, NotFound
+                        jp c, .notFound
                         cp '9'+1
-                        jp nc, NotFound
+                        jp nc, .notFound
                         inc hl
                         inc bc
                         ld a, b
                         or c
                         cp 6
-                        jp c, ParseNumberLoop
-FinishedNumber:
+                        jp c, .parseNumberLoop
+.finishedNumber:
                         inc hl
                         ld (ResponseStart), hl
                         push bc
                         ld hl, 5
                         or a
                         sbc hl, bc
-                        ld bc, hl
-                        ld hl, Zeroes
-                        ld de, AsciiDec
+                        ld b, h
+                        ld c, l
+                        ld hl, ParseIPDPacket.Zeroes
+                        ld de, ParseIPDPacket.AsciiDec
                         ldir
-NumStart equ $+1:       ld hl, SMC
+.numStart+*:            ld hl, SMC
                         pop bc                          ; The five bytes at AsciiDec are now the zero prefixed
                         ldir                            ; ASCII decimal IPD packet count.
-                        DecodeDecimal(ParseIPDPacket.AsciiDec, 5) ; HL now equals the IPD packet count
+                        DECODEDECIMAL ParseIPDPacket.AsciiDec, 5 ; HL now equals the IPD packet count
                         ld (ResponseLen), hl
                         or a                            ; Clear carry, no error, response round
                         ret
-NotFound:
+.notFound:
                         scf                             ; Carry, response not found
                         ret
-AsciiDec:               ds 5
-Zeroes:                 db "00000"
-pend
-
+ParseIPDPacket.AsciiDec:ds 5
+ParseIPDPacket.Zeroes:  db "00000"
