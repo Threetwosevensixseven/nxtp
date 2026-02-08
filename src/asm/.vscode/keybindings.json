@@ -1,0 +1,24 @@
+// Place your key bindings in this file to override the defaults.
+// Needs to go in %APPDATA%\Code\User\keybindings.json (on Windows)
+[
+	{
+        "key": "shift+ctrl+f6", 
+        "command": "workbench.action.tasks.runTask",
+        "args": "make zes"
+    },
+    {
+        "key": "shift+ctrl+f7", 
+        "command": "workbench.action.tasks.runTask",
+        "args": "make mame"
+    },
+    {
+        "key": "shift+ctrl+f8", 
+        "command": "workbench.action.tasks.runTask",
+        "args": "make cspect"
+    },
+    {
+        "key": "shift+ctrl+f9", 
+        "command": "workbench.action.tasks.runTask",
+        "args": "make sync"
+    }
+]

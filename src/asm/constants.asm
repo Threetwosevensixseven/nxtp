@@ -1,6 +1,6 @@
 ; constants.asm
 
-;  Copyright 2019-2020 Robin Verhagen-Guest
+;  Copyright 2019-2026 Robin Verhagen-Guest
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License");
 ; you may not use this file except in compliance with the License.
@@ -38,25 +38,22 @@ UART_TxD                equ $133B                       ; Also reads status
 UART_Sel                equ $153B                       ; Selects between ESP and Pi, and sets upper 3 bits of baud
 UART_SetBaud            equ UART_RxD                    ; Sets baudrate
 UART_GetStatus          equ UART_TxD                    ; Reads status bits
-UART_mRX_DATA_READY     equ %xxxxx 0 0 1                ; Status bit masks
-UART_mTX_BUSY           equ %xxxxx 0 1 0                ; Status bit masks
-UART_mRX_FIFO_FULL      equ %xxxxx 1 0 0                ; Status bit masks
-ESPTimeout              equ 65535*4;65535                       ; Use 10000 for 3.5MHz, but 28NHz needs to be 65535
+UART_mRX_DATA_READY     equ %00000'0'0'1                ; Status bit masks
+UART_mTX_BUSY           equ %00000'0'1'0                ; Status bit masks
+UART_mRX_FIFO_FULL      equ %00000'1'0'0                ; Status bit masks
+ESPTimeout              equ 65535*4;65535               ; Use 10000 for 3.5MHz, but 28NHz needs to be 65535
 ESPTimeout2             equ 10000                       ; Use 10000 for 3.5MHz, but 28NHz needs to be 65535
 
 ; Ports
-Port                    proc
-  NextReg               equ $243B
-pend
+Port.NextReg            equ $243B
+
 
 ; Registers
-Reg                     proc
-  MachineID             equ $00
-  CoreMSB               equ $01
-  CPUSpeed              equ $07
-  CoreLSB               equ $0E
-  VideoTiming           equ $11
-pend
+Reg.MachineID           equ $00
+Reg.CoreMSB             equ $01
+Reg.CPUSpeed            equ $07
+Reg.CoreLSB             equ $0E
+Reg.VideoTiming         equ $11
 
 ; Chars
 SMC                     equ 0
@@ -143,4 +140,3 @@ FWw                     equ 6
 FWx                     equ 4
 FWy                     equ 4
 FWz                     equ 4
-
