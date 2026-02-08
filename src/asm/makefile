@@ -43,7 +43,7 @@ TOUCH = ..\..\tools\busybox.exe touch -c
 
 # Default target is to build the dot command from source
 build: 
-#	$(ZXVERSION)
+	$(ZXVERSION)
 	$(SJASMPLUS) --sym=main.sym --lst=main.lst $(SRCDIR)/main.asm
 
 # Removes all build-generated files
