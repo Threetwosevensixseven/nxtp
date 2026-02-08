@@ -1,0 +1,1 @@
+#program autoexec#autostart  10 IF % REG 1<64 THEN .syncfast  20  .nxtp time.nxtel.org 123009998 GO TO 100009999 SAVE "c:/NextZXOS/autoexec.bas" LINE 0

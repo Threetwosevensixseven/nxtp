@@ -29,9 +29,8 @@
                         org $2000                       ; Dot commands load into divMMC RAM and execute from $2000
 Start:
                         jr .begin
-                        db "NXTPv1."                    ; Put a signature and version in the file, in case we ever need
-                        BuildNo                         ; to detect it programmatically (max 30 without terminator)                 
-                        db 0                            ; Terminate signature string
+                        db "NXTPv1.", BuildNoValue      ; Put a signature and version in the file, in case we ever need
+                        db ".", CommitHashShortValue, 0 ; to detect it programmatically (max 30 without terminator)    
 .begin:                 jp Main
                         org $2800
 Main:            

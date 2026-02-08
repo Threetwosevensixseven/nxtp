@@ -14,9 +14,9 @@
 ; See the License for the specific language governing permissions and
 ; limitations under the License.
 
-Msg.Startup:            db "NXTP v1."
-                        BuildNo
-                        db CR, Copyright, " 2019-2020 Robin Verhagen-Guest", CR, CR, 0
+Msg.Startup:            db "NXTP v1.", BuildNoValue, ".", CommitHashShortValue, CR
+                        CopyrightMacro
+                        db CR, CR, 0
 Msg.InitESP:            db "Initialising WiFi...", CR, 0
 Msg.InitDone:           db "Initialised", CR, 0
 Msg.Connect1:           db "Connecting to ", 0
@@ -136,9 +136,10 @@ PrintHelp:
                         db "  If omitted, uses UK time", CR
                         db "  List of timezone codes at:", CR
                         db "  https://tinyurl.com/tznxtp", CR, CR
-                        db "NXTP v1.", BuildNoValue, " ", BuildDateValue, " ", BuildTimeSecsValue, CR
-                        db Copyright, " 2019 Robin Verhagen-Guest", CR
-                        db 0
+                        db "NXTP v1.", BuildNoValue, ".", CommitHashShortValue, CR
+                        db "Built ", BuildDateValue, " ", BuildTimeSecsValue, CR
+                        CopyrightMacro
+                        db CR, 0
 
 PrintBufferProc:
                         ld de, MsgBuffer
