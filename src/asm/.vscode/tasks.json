@@ -18,12 +18,12 @@
             "problemMatcher": []
         },
         {
-            "label": "make emu",
+            "label": "make cspect",
             "type": "shell",
             "command": "",
             "args": [
                 "make",
-                "emu"
+                "cspect"
             ],
             "group": "build",
             "problemMatcher": []

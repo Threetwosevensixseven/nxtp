@@ -13,10 +13,10 @@
 #  limitations under the License.
 
 # Makefile for NextInstaller.dot command.
-# Only tested with GNU MAKE 3.81 for Windows.
+# Only tested with GNU MAKE 3.81 for Windows: https://gnuwin32.sourceforge.net/packages/make.htm
 # If you fix this up for linux or mac, please contribute your changes.
 # Use sjasmplus v1.21.1 or higher, from https://github.com/z00m128/sjasmplus
-# Use ZXVersion latest version, from https://github.com/Threetwosevensixseven/ZXVersion
+# Use ZXVersion v1.6.0.89bf069 or higher, from https://github.com/Threetwosevensixseven/ZXVersion/releases/latest
 # Use hdfmonkey v0.5.7 jjjs or higher, from https://www.specnext.com/forum/viewtopic.php?p=16374#p16032
 # Use NextSync v1.2 or higher, from https://solhsa.com/specnext.html#NEXTSYNC
 # With CSpect, use UARTReplacement v1.8 or higher, from https://github.com/Threetwosevensixseven/CSpectPlugins/releases/latest
@@ -25,6 +25,7 @@
 # Change these variables to suit your own environment
 SRCDIR = .
 BINDIR = ..\..\dot
+BASDIR = ..\..\basic
 SJASMPLUS = ..\..\tools\sjasmplus
 HDFMONKEY = ..\..\tools\hdfmonkey
 ZXVERSION = ..\..\tools\zxversion
@@ -38,6 +39,7 @@ MD = md
 CP = copy /Y
 KILL = taskkill /F /IM
 PY = python3.13.exe
+TOUCH = ..\..\tools\busybox.exe touch -c
 
 # Default target is to build the dot command from source
 build: 
@@ -51,13 +53,13 @@ clean:
 	-$(RM) "$(SRCDIR)/main.lst"
 
 # Builds, injects built dot and autoexec into CSpect SD image, and starts CSpect asynchronously.
-emu: build
+cspect: build
 	-$(HDFMONKEY) mkdir $(EMUSD) dot
-	$(HDFMONKEY) put $(EMUSD) $(BINDIR)/NextInstaller.dot dot/NXTP.
-	$(HDFMONKEY) put $(EMUSD) $(SRCDIR)/autoexec.bas NextZXOS                     
+	$(HDFMONKEY) put $(EMUSD) $(BINDIR)/NXTP. dot/NXTP.
+	$(HDFMONKEY) put $(EMUSD) $(BASDIR)\autoexec.bas NextZXOS                     
 #   Uncomment this to get the current autoexec.bas/.txt in the image back into the project:
-#	$(HDFMONKEY) get $(EMUSD) /NextZXOS/autoexec.bas $(SRCDIR)/autoexec.bas
-#	$(HDFMONKEY) get $(EMUSD) /NextZXOS/autoexec.txt $(SRCDIR)/autoexec.txt
+#	$(HDFMONKEY) get $(EMUSD) /NextZXOS/autoexec.bas $(BASDIR)\autoexec.bas
+#	$(HDFMONKEY) get $(EMUSD) /NextZXOS/autoexec.txt $(BASDIR)\autoexec.txt
 	-$(KILL) cspect.exe 
 	CMD /C start /d $(EMUDIR) cspect -w3 -zxnext -nextrom -basickeys -exit -brk -tv -emu -mmc=$(EMUSD)
 
@@ -65,12 +67,12 @@ emu: build
 # WHen you F4, autoexec will skip running .sync (because CSpect defaults to core version 4.0.0), then run the dot command.
 # The first time you make sync, run .sync manually to get the files.
 sync: build
-	-$(MD) "$(SYNCDIR)/dot"
-	copy "$(BINDIR)$(PATHSEP)NXTP." "$(SYNCDIR)$(PATHSEP)dot$(PATHSEP)*.*"
-	-$(MD) "$(SYNCDIR)/NextZXOS"
-	copy "$(SRCDIR)$(PATHSEP)autoexec.bas" "$(SYNCDIR)$(PATHSEP)NextZXOS$(PATHSEP)*.*"
-
+	-$(MD) "$(SYNCDIR)\dot"
+	copy "$(BINDIR)\NXTP." "$(SYNCDIR)\dot\*.*"
+	-$(MD) "$(SYNCDIR)\NextZXOS"
+	copy "$(BASDIR)\autoexec.bas" "$(SYNCDIR)\NextZXOS\*.*"
+	$(TOUCH) "$(SYNCDIR)\NextZXOS\autoexec.bas"
 # Warning: kills all running python processes
 # Remove these two lines and start the server manually if that bothers you
 	-$(KILL) $(PY)
-	CMD /C start /d $(SYNCDIR) /min nextsync.py
+	cd "$(SYNCDIR)" && CMD /C start /d "$(SYNCDIR)" nextsync.py
