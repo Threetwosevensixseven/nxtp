@@ -131,8 +131,8 @@ ESPReceiveWaitOK:
 
 ESPReceiveWaitPrompt:
                         call InitESPTimeout
-                        ld a, high UART_GetStatus       ; Are there any characters waiting?
-.waitNotBusy:           in a, (low UART_GetStatus)      ; This inputs from the 16-bit address UART_GetStatus
+.waitNotBusy:           ld a, high UART_GetStatus       ; Are there any characters waiting?
+                        in a, (low UART_GetStatus)      ; This inputs from the 16-bit address UART_GetStatus
                         rrca                            ; Check UART_mRX_DATA_READY flag in bit 0
                         jp nc, .checkTimeout            ; If not, retry
                         ld a, high UART_RxD             ; Otherwise Read the byte
