@@ -56,6 +56,24 @@ ESPSendBufferProc:
 .checkTimeout:          call CheckESPTimeout
                         jp .waitNotBusy
 
+ESPEmptyFIFO:
+                        push de
+                        ld de, 20000                    ; a safe number of repetitions to empty the
+.loopReceive:                                           ; 512 byte receive FIFO buffer when 115200bps
+                        ld a, high UART_GetStatus
+                        in a,(low UART_GetStatus)
+                        rrca                            ; Check UART_mRX_DATA_READY flag in bit 0
+                        jr nc, .noByte
+                        ld a, high UART_RxD             ; read the byte out
+                        in a,(low UART_RxD)
+.noByte:
+                        dec de                          ; decrement the counter
+                        ld a, d                         ;
+                        or a, e                         ;  == 0 ?
+                        jr nz, .loopReceive
+                        pop de
+                        ret
+
 ESPReceiveWaitOK:
                         call InitESPTimeout
                         xor a
