@@ -170,6 +170,8 @@ InitialiseESP:
                         ld a, CR
                         rst 16*/
 
+                        call ESPEmptyFIFO               ; make sure old leftovers in FIFO aren't treated as responses
+
                         ESPSEND "ATE0"                  ; * Until we have absolute frame-based timeouts, send first AT
                         call ESPReceiveWaitOK           ; * cmd twice to give it longer to respond to one of them.
                         ESPSEND "ATE0"
